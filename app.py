@@ -17,6 +17,8 @@ from models.lstm_model import LSTMPredictor
 from models.prophet_model import ProphetPredictor
 from models.ensemble_model import EnsemblePredictor
 from models.transformer_model import TransformerPredictor
+from models.gru_model import GRUPredictor
+from models.stacking_ensemble import StackingEnsemblePredictor
 from utils.model_utils import ModelUtils
 from utils.portfolio_tracker import PortfolioTracker
 from utils.advanced_analytics import AdvancedAnalytics
@@ -59,6 +61,8 @@ class StockTrendAI:
         self.prophet_predictor = ProphetPredictor()
         self.ensemble_predictor = EnsemblePredictor()
         self.transformer_predictor = TransformerPredictor()
+        self.gru_predictor = GRUPredictor()
+        self.stacking_predictor = StackingEnsemblePredictor()
         self.model_utils = ModelUtils()
         self.portfolio_tracker = PortfolioTracker()
         self.advanced_analytics = AdvancedAnalytics()
@@ -71,7 +75,7 @@ class StockTrendAI:
         st.markdown("""
         <div class="neon-header">
             <h1 class="main-title">🚀 StockTrendAI</h1>
-            <p class="subtitle">AI-Powered Indian Stock Market Predictor with 5 Advanced ML Models</p>
+            <p class="subtitle">AI-Powered Indian Stock Market Predictor with 7 Advanced ML Models</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -172,6 +176,8 @@ class StockTrendAI:
         use_prophet = st.sidebar.checkbox("📈 Prophet (Time Series)", value=True)
         use_ensemble = st.sidebar.checkbox("🎯 Ensemble (Multi-Model)", value=True)
         use_transformer = st.sidebar.checkbox("⚡ Transformer (Attention)", value=True)
+        use_gru = st.sidebar.checkbox("🔥 GRU (Efficient RNN)", value=True)
+        use_stacking = st.sidebar.checkbox("🏆 Stacking Ensemble (Meta)", value=True)
         
         # Auto-refresh toggle
         auto_refresh = st.sidebar.checkbox("Auto Refresh (30s)", value=False)
@@ -197,7 +203,7 @@ class StockTrendAI:
         else:
             st.sidebar.info("📊 Historical data - Updates every 5 minutes")
         
-        return selected_symbol, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, auto_refresh
+        return selected_symbol, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh
     
     def load_and_process_data(self, symbol, period):
         """Load and process stock data with caching"""
@@ -305,7 +311,7 @@ class StockTrendAI:
             "market_hours": "9:15 AM - 3:30 PM IST"
         }
     
-    def generate_predictions(self, stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer):
+    def generate_predictions(self, stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking):
         """Generate predictions using selected models"""
         # Create a unique key based on the data, symbol, and period
         data_key = f"{st.session_state.selected_stock}_{st.session_state.selected_period}_{len(stock_data)}"
@@ -356,6 +362,22 @@ class StockTrendAI:
                     except Exception as e:
                         st.warning(f"Transformer prediction failed: {str(e)}")
             
+            if use_gru:
+                with st.spinner("🔥 Running GRU prediction..."):
+                    try:
+                        gru_pred = self.gru_predictor.predict(stock_data)
+                        predictions['GRU'] = gru_pred
+                    except Exception as e:
+                        st.warning(f"GRU prediction failed: {str(e)}")
+            
+            if use_stacking:
+                with st.spinner("🏆 Running Stacking Ensemble prediction..."):
+                    try:
+                        stacking_pred = self.stacking_predictor.predict(stock_data)
+                        predictions['Stacking'] = stacking_pred
+                    except Exception as e:
+                        st.warning(f"Stacking Ensemble prediction failed: {str(e)}")
+            
             st.session_state.predictions = predictions
             st.session_state.last_data_key = data_key
         
@@ -389,7 +411,9 @@ class StockTrendAI:
                     'LSTM': '🧠',
                     'Prophet': '📈',
                     'Ensemble': '🎯',
-                    'Transformer': '⚡'
+                    'Transformer': '⚡',
+                    'GRU': '🔥',
+                    'Stacking': '🏆'
                 }
                 icon = model_icons.get(model_name, '🤖')
                 
@@ -549,16 +573,39 @@ class StockTrendAI:
                     row=4, col=1
                 )
         
-        # Update layout
+        # Update layout with comprehensive styling
         fig.update_layout(
-            title=f"{symbol} - Technical Analysis Dashboard",
+            title=dict(
+                text=f"{symbol} - Technical Analysis Dashboard",
+                font=dict(color='white', size=20)
+            ),
             template="plotly_dark",
             height=800,
             showlegend=True,
             xaxis_rangeslider_visible=False,
             paper_bgcolor='black',
             plot_bgcolor='black',
-            font=dict(color='white')
+            font=dict(color='white', family='Arial', size=12),
+            legend=dict(
+                font=dict(color='white'),
+                bgcolor='rgba(0,0,0,0.5)',
+                bordercolor='rgba(255,255,255,0.2)',
+                borderwidth=1
+            )
+        )
+        
+        # Update all axes to have white text
+        fig.update_xaxes(
+            gridcolor='rgba(255,255,255,0.1)',
+            linecolor='rgba(255,255,255,0.2)',
+            tickfont=dict(color='white'),
+            titlefont=dict(color='white')
+        )
+        fig.update_yaxes(
+            gridcolor='rgba(255,255,255,0.1)',
+            linecolor='rgba(255,255,255,0.2)',
+            tickfont=dict(color='white'),
+            titlefont=dict(color='white')
         )
         
         st.plotly_chart(fig, use_container_width=True)
@@ -769,7 +816,7 @@ class StockTrendAI:
         """Render the main predictions tab"""
         try:
             # Render sidebar and get selections
-            selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, auto_refresh = self.render_sidebar()
+            selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh = self.render_sidebar()
             
             # Auto-refresh logic
             if auto_refresh:
@@ -795,7 +842,7 @@ class StockTrendAI:
                 self.render_market_summary(stock_data, selected_stock)
                 
                 # Generate predictions
-                predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer)
+                predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking)
                 
                 # Render prediction cards with confidence meter
                 st.markdown("### 🔮 AI Predictions for Tomorrow")
@@ -1382,12 +1429,19 @@ class StockTrendAI:
         )])
         
         fig.update_layout(
-            title="Sentiment Distribution",
+            title=dict(
+                text="Sentiment Distribution",
+                font=dict(color='white', size=18)
+            ),
             template="plotly_dark",
             height=400,
             paper_bgcolor='black',
             plot_bgcolor='black',
-            font=dict(color='white')
+            font=dict(color='white', family='Arial', size=12),
+            legend=dict(
+                font=dict(color='white'),
+                bgcolor='rgba(0,0,0,0.5)'
+            )
         )
         
         st.plotly_chart(fig, use_container_width=True)
@@ -1420,14 +1474,35 @@ class StockTrendAI:
                 ))
             
             fig.update_layout(
-                title="Stock Performance Comparison (% Change)",
+                title=dict(
+                    text="Stock Performance Comparison (% Change)",
+                    font=dict(color='white', size=18)
+                ),
                 xaxis_title="Date",
                 yaxis_title="Percentage Change (%)",
                 template="plotly_dark",
                 paper_bgcolor='black',
                 plot_bgcolor='black',
-                font=dict(color='white'),
+                font=dict(color='white', family='Arial', size=12),
+                legend=dict(
+                    font=dict(color='white'),
+                    bgcolor='rgba(0,0,0,0.5)'
+                ),
                 height=500
+            )
+            
+            # Update axes for white text
+            fig.update_xaxes(
+                gridcolor='rgba(255,255,255,0.1)',
+                linecolor='rgba(255,255,255,0.2)',
+                tickfont=dict(color='white'),
+                titlefont=dict(color='white')
+            )
+            fig.update_yaxes(
+                gridcolor='rgba(255,255,255,0.1)',
+                linecolor='rgba(255,255,255,0.2)',
+                tickfont=dict(color='white'),
+                titlefont=dict(color='white')
             )
             
             st.plotly_chart(fig, use_container_width=True)

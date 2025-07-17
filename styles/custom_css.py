@@ -786,5 +786,109 @@ def get_custom_css():
         color: white !important;
     }
     
+    /* Streamlit Tab Styling - Fix Gray Text Issue */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 10px;
+        padding: 5px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        background: rgba(0,0,0,0.5);
+        border-radius: 8px;
+        color: #ffffff !important;
+        font-weight: 600;
+        border: 1px solid rgba(0,255,136,0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(45deg, rgba(0,255,136,0.3), rgba(0,136,255,0.3)) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0,255,136,0.6);
+        box-shadow: 0 0 15px rgba(0,255,136,0.3);
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background: rgba(0,255,136,0.2) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Fix all Streamlit text colors */
+    .stMarkdown, .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+        color: #ffffff !important;
+    }
+    
+    /* Fix metric text colors */
+    .metric-container [data-testid="metric-container"] {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(0,255,136,0.3);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+    
+    .metric-container [data-testid="metric-container"] > div {
+        color: #ffffff !important;
+    }
+    
+    [data-testid="metric-container"] > div {
+        color: #ffffff !important;
+    }
+    
+    [data-testid="metric-container"] label {
+        color: #ffffff !important;
+    }
+    
+    /* Fix selectbox text */
+    .stSelectbox > div > div {
+        color: #ffffff !important;
+    }
+    
+    .stSelectbox [data-baseweb="select"] {
+        color: #ffffff !important;
+    }
+    
+    /* Fix all text elements */
+    div[data-testid="stText"], .stText {
+        color: #ffffff !important;
+    }
+    
+    /* Fix checkbox text */
+    .stCheckbox > label {
+        color: #ffffff !important;
+    }
+    
+    /* Fix sidebar text */
+    .css-1d391kg, .css-1d391kg p {
+        color: #ffffff !important;
+    }
+    
+    /* Fix all paragraph text */
+    p, span, div {
+        color: #ffffff !important;
+    }
+    
+    /* Plotly text color fixes */
+    .js-plotly-plot .plotly .plot-container {
+        color: #ffffff !important;
+    }
+    
+    /* Override any gray text */
+    * {
+        color: #ffffff !important;
+    }
+    
+    /* Exception for certain UI elements that should remain colored */
+    .prediction-card .metric-value,
+    .neon-header .main-title,
+    .neon-header .subtitle,
+    .sidebar-header h2,
+    .metric-positive,
+    .metric-negative {
+        color: inherit !important;
+    }
+    
     </style>
     """

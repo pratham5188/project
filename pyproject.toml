@@ -19,4 +19,6 @@ dependencies = [
     "textblob>=0.19.0",
     "xgboost>=3.0.2",
     "yfinance>=0.2.65",
+    "lightgbm>=4.3.0",
+    "tensorflow>=2.18.0",
 ]

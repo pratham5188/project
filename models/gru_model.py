@@ -1,11 +1,16 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import GRU, Dense, Dropout, BatchNormalization
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import GRU, Dense, Dropout, BatchNormalization
+    from tensorflow.keras.optimizers import Adam
+    from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    TENSORFLOW_AVAILABLE = False
+    print("TensorFlow not available - using fallback prediction method")
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -132,6 +137,9 @@ class GRUPredictor:
     def predict(self, data):
         """Generate prediction using GRU model"""
         try:
+            if not TENSORFLOW_AVAILABLE:
+                return self._simple_prediction(data)
+                
             if len(data) < self.sequence_length:
                 return {
                     'direction': 'HOLD',

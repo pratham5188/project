@@ -7,7 +7,12 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import cross_val_score, KFold
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import xgboost as xgb
-import lightgbm as lgb
+try:
+    import lightgbm as lgb
+    LIGHTGBM_AVAILABLE = True
+except ImportError:
+    LIGHTGBM_AVAILABLE = False
+    print("LightGBM not available - using XGBoost alternative")
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -55,6 +60,12 @@ class StackingEnsemblePredictor:
                 max_depth=6,
                 random_state=42,
                 verbosity=-1
+            ) if LIGHTGBM_AVAILABLE else xgb.XGBRegressor(
+                n_estimators=50,
+                learning_rate=0.05,
+                max_depth=4,
+                random_state=43,
+                verbosity=0
             ),
             'ridge': Ridge(alpha=1.0),
             'lasso': Lasso(alpha=0.1),

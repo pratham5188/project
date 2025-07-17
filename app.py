@@ -14,6 +14,10 @@ from utils.data_fetcher import DataFetcher
 from utils.technical_indicators import TechnicalIndicators
 from models.xgboost_model import XGBoostPredictor
 from models.lstm_model import LSTMPredictor
+from models.prophet_model import ProphetPredictor
+from models.gru_model import GRUPredictor
+from models.transformer_model import TransformerPredictor
+from models.ensemble_model import EnsemblePredictor
 from utils.model_utils import ModelUtils
 from utils.portfolio_tracker import PortfolioTracker
 from utils.advanced_analytics import AdvancedAnalytics
@@ -52,6 +56,10 @@ class StockTrendAI:
         self.tech_indicators = TechnicalIndicators()
         self.xgb_predictor = XGBoostPredictor()
         self.lstm_predictor = LSTMPredictor()
+        self.prophet_predictor = ProphetPredictor()
+        self.gru_predictor = GRUPredictor()
+        self.transformer_predictor = TransformerPredictor()
+        self.ensemble_predictor = EnsemblePredictor()
         self.model_utils = ModelUtils()
         self.portfolio_tracker = PortfolioTracker()
         self.advanced_analytics = AdvancedAnalytics()
@@ -63,7 +71,7 @@ class StockTrendAI:
         st.markdown("""
         <div class="neon-header">
             <h1 class="main-title">🚀 StockTrendAI</h1>
-            <p class="subtitle">AI-Powered Indian Stock Market Predictor with Dual ML Models</p>
+            <p class="subtitle">AI-Powered Indian Stock Market Predictor with Advanced ML Models</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -159,8 +167,26 @@ class StockTrendAI:
         
         # Model selection
         st.sidebar.markdown("### 🤖 AI Models")
-        use_xgboost = st.sidebar.checkbox("XGBoost (Speed)", value=True)
-        use_lstm = st.sidebar.checkbox("LSTM (Deep Learning)", value=True)
+        st.sidebar.markdown("Select models for prediction:")
+        
+        model_options = {
+            'XGBoost': 'XGBoost (Speed & Efficiency)',
+            'LSTM': 'LSTM (Deep Learning)',
+            'Prophet': 'Prophet (Time Series)',
+            'GRU': 'GRU (Advanced RNN)',
+            'Transformer': 'Transformer (Attention)',
+            'Ensemble': 'Ensemble (Stacking)'
+        }
+        
+        selected_models = []
+        for model_key, model_desc in model_options.items():
+            default_value = model_key in ['XGBoost', 'LSTM', 'Ensemble']
+            if st.sidebar.checkbox(model_desc, value=default_value, key=f"model_{model_key}"):
+                selected_models.append(model_key)
+        
+        if not selected_models:
+            st.sidebar.warning("⚠️ Please select at least one model!")
+            selected_models = ['XGBoost']  # Default fallback
         
         # Auto-refresh toggle
         auto_refresh = st.sidebar.checkbox("Auto Refresh (30s)", value=False)
@@ -186,7 +212,7 @@ class StockTrendAI:
         else:
             st.sidebar.info("📊 Historical data - Updates every 5 minutes")
         
-        return selected_symbol, period, use_xgboost, use_lstm, auto_refresh
+        return selected_symbol, period, selected_models, auto_refresh
     
     def load_and_process_data(self, symbol, period):
         """Load and process stock data with caching"""
@@ -294,7 +320,7 @@ class StockTrendAI:
             "market_hours": "9:15 AM - 3:30 PM IST"
         }
     
-    def generate_predictions(self, stock_data, use_xgboost, use_lstm):
+    def generate_predictions(self, stock_data, selected_models):
         """Generate predictions using selected models"""
         # Create a unique key based on the data, symbol, and period
         data_key = f"{st.session_state.selected_stock}_{st.session_state.selected_period}_{len(stock_data)}"
@@ -305,21 +331,25 @@ class StockTrendAI:
             
             predictions = {}
             
-            if use_xgboost:
-                with st.spinner("🤖 Running XGBoost prediction..."):
-                    try:
-                        xgb_pred = self.xgb_predictor.predict(stock_data)
-                        predictions['XGBoost'] = xgb_pred
-                    except Exception as e:
-                        st.warning(f"XGBoost prediction failed: {str(e)}")
+            # Model mapping
+            model_predictors = {
+                'XGBoost': self.xgb_predictor,
+                'LSTM': self.lstm_predictor,
+                'Prophet': self.prophet_predictor,
+                'GRU': self.gru_predictor,
+                'Transformer': self.transformer_predictor,
+                'Ensemble': self.ensemble_predictor
+            }
             
-            if use_lstm:
-                with st.spinner("🧠 Running LSTM prediction..."):
-                    try:
-                        lstm_pred = self.lstm_predictor.predict(stock_data)
-                        predictions['LSTM'] = lstm_pred
-                    except Exception as e:
-                        st.warning(f"LSTM prediction failed: {str(e)}")
+            for model_name in selected_models:
+                if model_name in model_predictors:
+                    with st.spinner(f"🤖 Running {model_name} prediction..."):
+                        try:
+                            predictor = model_predictors[model_name]
+                            pred_result = predictor.predict(stock_data)
+                            predictions[model_name] = pred_result
+                        except Exception as e:
+                            st.warning(f"{model_name} prediction failed: {str(e)}")
             
             st.session_state.predictions = predictions
             st.session_state.last_data_key = data_key
@@ -726,7 +756,7 @@ class StockTrendAI:
         """Render the main predictions tab"""
         try:
             # Render sidebar and get selections
-            selected_stock, period, use_xgboost, use_lstm, auto_refresh = self.render_sidebar()
+            selected_stock, period, selected_models, auto_refresh = self.render_sidebar()
             
             # Auto-refresh logic
             if auto_refresh:
@@ -752,7 +782,7 @@ class StockTrendAI:
                 self.render_market_summary(stock_data, selected_stock)
                 
                 # Generate predictions
-                predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm)
+                predictions = self.generate_predictions(stock_data, selected_models)
                 
                 # Render prediction cards with confidence meter
                 st.markdown("### 🔮 AI Predictions for Tomorrow")

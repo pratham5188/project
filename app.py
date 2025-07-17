@@ -14,11 +14,15 @@ from utils.data_fetcher import DataFetcher
 from utils.technical_indicators import TechnicalIndicators
 from models.xgboost_model import XGBoostPredictor
 from models.lstm_model import LSTMPredictor
+from models.prophet_model import ProphetPredictor
+from models.ensemble_model import EnsemblePredictor
+from models.transformer_model import TransformerPredictor
 from utils.model_utils import ModelUtils
 from utils.portfolio_tracker import PortfolioTracker
 from utils.advanced_analytics import AdvancedAnalytics
 from utils.news_sentiment import NewsSentimentAnalyzer
 from utils.ui_components import UIComponents
+from utils.model_info import ModelInfo
 from styles.custom_css import get_custom_css
 from config.settings import INDIAN_STOCKS, INDIAN_INDICES, DEFAULT_STOCK
 
@@ -52,18 +56,22 @@ class StockTrendAI:
         self.tech_indicators = TechnicalIndicators()
         self.xgb_predictor = XGBoostPredictor()
         self.lstm_predictor = LSTMPredictor()
+        self.prophet_predictor = ProphetPredictor()
+        self.ensemble_predictor = EnsemblePredictor()
+        self.transformer_predictor = TransformerPredictor()
         self.model_utils = ModelUtils()
         self.portfolio_tracker = PortfolioTracker()
         self.advanced_analytics = AdvancedAnalytics()
         self.news_sentiment = NewsSentimentAnalyzer()
         self.ui_components = UIComponents()
+        self.model_info = ModelInfo()
     
     def render_header(self):
         """Render the main header with neon glow effect"""
         st.markdown("""
         <div class="neon-header">
             <h1 class="main-title">🚀 StockTrendAI</h1>
-            <p class="subtitle">AI-Powered Indian Stock Market Predictor with Dual ML Models</p>
+            <p class="subtitle">AI-Powered Indian Stock Market Predictor with 5 Advanced ML Models</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -159,8 +167,11 @@ class StockTrendAI:
         
         # Model selection
         st.sidebar.markdown("### 🤖 AI Models")
-        use_xgboost = st.sidebar.checkbox("XGBoost (Speed)", value=True)
-        use_lstm = st.sidebar.checkbox("LSTM (Deep Learning)", value=True)
+        use_xgboost = st.sidebar.checkbox("🚀 XGBoost (Speed)", value=True)
+        use_lstm = st.sidebar.checkbox("🧠 LSTM (Deep Learning)", value=True)
+        use_prophet = st.sidebar.checkbox("📈 Prophet (Time Series)", value=True)
+        use_ensemble = st.sidebar.checkbox("🎯 Ensemble (Multi-Model)", value=True)
+        use_transformer = st.sidebar.checkbox("⚡ Transformer (Attention)", value=True)
         
         # Auto-refresh toggle
         auto_refresh = st.sidebar.checkbox("Auto Refresh (30s)", value=False)
@@ -186,7 +197,7 @@ class StockTrendAI:
         else:
             st.sidebar.info("📊 Historical data - Updates every 5 minutes")
         
-        return selected_symbol, period, use_xgboost, use_lstm, auto_refresh
+        return selected_symbol, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, auto_refresh
     
     def load_and_process_data(self, symbol, period):
         """Load and process stock data with caching"""
@@ -294,7 +305,7 @@ class StockTrendAI:
             "market_hours": "9:15 AM - 3:30 PM IST"
         }
     
-    def generate_predictions(self, stock_data, use_xgboost, use_lstm):
+    def generate_predictions(self, stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer):
         """Generate predictions using selected models"""
         # Create a unique key based on the data, symbol, and period
         data_key = f"{st.session_state.selected_stock}_{st.session_state.selected_period}_{len(stock_data)}"
@@ -321,6 +332,30 @@ class StockTrendAI:
                     except Exception as e:
                         st.warning(f"LSTM prediction failed: {str(e)}")
             
+            if use_prophet:
+                with st.spinner("📈 Running Prophet prediction..."):
+                    try:
+                        prophet_pred = self.prophet_predictor.predict(stock_data)
+                        predictions['Prophet'] = prophet_pred
+                    except Exception as e:
+                        st.warning(f"Prophet prediction failed: {str(e)}")
+            
+            if use_ensemble:
+                with st.spinner("🎯 Running Ensemble prediction..."):
+                    try:
+                        ensemble_pred = self.ensemble_predictor.predict(stock_data)
+                        predictions['Ensemble'] = ensemble_pred
+                    except Exception as e:
+                        st.warning(f"Ensemble prediction failed: {str(e)}")
+            
+            if use_transformer:
+                with st.spinner("⚡ Running Transformer prediction..."):
+                    try:
+                        transformer_pred = self.transformer_predictor.predict(stock_data)
+                        predictions['Transformer'] = transformer_pred
+                    except Exception as e:
+                        st.warning(f"Transformer prediction failed: {str(e)}")
+            
             st.session_state.predictions = predictions
             st.session_state.last_data_key = data_key
         
@@ -343,12 +378,20 @@ class StockTrendAI:
                 # Determine colors and icons
                 if direction == 'UP':
                     color_class = "prediction-card-up"
-                    icon = "📈"
                     arrow = "⬆️"
                 else:
                     color_class = "prediction-card-down"
-                    icon = "📉"
                     arrow = "⬇️"
+                
+                # Model-specific icons
+                model_icons = {
+                    'XGBoost': '🚀',
+                    'LSTM': '🧠',
+                    'Prophet': '📈',
+                    'Ensemble': '🎯',
+                    'Transformer': '⚡'
+                }
+                icon = model_icons.get(model_name, '🤖')
                 
                 # Calculate price change
                 price_change = predicted_price - current_price
@@ -726,7 +769,7 @@ class StockTrendAI:
         """Render the main predictions tab"""
         try:
             # Render sidebar and get selections
-            selected_stock, period, use_xgboost, use_lstm, auto_refresh = self.render_sidebar()
+            selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, auto_refresh = self.render_sidebar()
             
             # Auto-refresh logic
             if auto_refresh:
@@ -752,7 +795,7 @@ class StockTrendAI:
                 self.render_market_summary(stock_data, selected_stock)
                 
                 # Generate predictions
-                predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm)
+                predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer)
                 
                 # Render prediction cards with confidence meter
                 st.markdown("### 🔮 AI Predictions for Tomorrow")
@@ -921,8 +964,31 @@ class StockTrendAI:
         """Render advanced tools and features"""
         st.markdown("## ⚙️ Advanced Tools")
         
-        # Advanced features
-        tool_col1, tool_col2 = st.columns(2)
+        # Add tabs for different sections
+        tool_tab1, tool_tab2, tool_tab3 = st.tabs(["🤖 AI Models Info", "📊 Analysis Tools", "🔧 Utilities"])
+        
+        with tool_tab1:
+            st.markdown("## 🤖 AI Models Information")
+            
+            # Model comparison table
+            self.model_info.render_model_comparison()
+            
+            # Model selection recommendations
+            self.model_info.render_model_recommendations()
+            
+            # Detailed model information
+            self.model_info.render_model_details()
+            
+            # Advanced model explanations
+            col1, col2 = st.columns(2)
+            with col1:
+                self.model_info.render_ensemble_explanation()
+            with col2:
+                self.model_info.render_transformer_explanation()
+        
+        with tool_tab2:
+            # Advanced features
+            tool_col1, tool_col2 = st.columns(2)
         
         with tool_col1:
             st.markdown("### 🔄 Data Export")
@@ -961,6 +1027,63 @@ class StockTrendAI:
             # Model performance
             st.markdown("### 📈 Model Performance")
             self.render_model_performance_metrics()
+        
+        with tool_tab3:
+            st.markdown("## 🔧 Utilities")
+            
+            util_col1, util_col2 = st.columns(2)
+            
+            with util_col1:
+                st.markdown("### ⚙️ App Settings")
+                st.info("🎨 Color theme: Dark Neon (with white text)")
+                st.info("🤖 AI Models: 5 Advanced Models Available")
+                st.info("📊 Data Source: Yahoo Finance (Indian Markets)")
+                
+                # Model status
+                st.markdown("### 🔋 Model Status")
+                model_status = {
+                    "XGBoost": "✅ Ready",
+                    "LSTM": "✅ Ready", 
+                    "Prophet": "✅ Ready",
+                    "Ensemble": "✅ Ready",
+                    "Transformer": "✅ Ready"
+                }
+                
+                for model, status in model_status.items():
+                    st.markdown(f"**{model}:** {status}")
+            
+            with util_col2:
+                st.markdown("### 📋 Quick Actions")
+                
+                if st.button("🔄 Reset All Models"):
+                    st.session_state.predictions = None
+                    st.success("All models reset successfully!")
+                
+                if st.button("🧹 Clear Cache"):
+                    st.cache_data.clear()
+                    st.success("Cache cleared successfully!")
+                
+                st.markdown("### 📝 App Information")
+                st.markdown("""
+                **Version:** 2.0 - Advanced AI Edition
+                **Models:** 5 State-of-the-art AI Models
+                **Features:** 
+                - Multi-model predictions
+                - Real-time data
+                - Advanced analytics
+                - Portfolio tracking
+                - News sentiment analysis
+                """)
+                
+                st.markdown("### 🎯 Performance Tips")
+                st.markdown("""
+                💡 **For Best Results:**
+                - Use multiple models for consensus
+                - Check confidence levels
+                - Consider market conditions
+                - Combine with technical analysis
+                - Monitor news sentiment
+                """)
     
     def render_confidence_meter(self, predictions):
         """Render confidence meter for predictions"""

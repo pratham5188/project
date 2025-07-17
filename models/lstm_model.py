@@ -7,8 +7,17 @@ import os
 import warnings
 warnings.filterwarnings('ignore')
 
-# TensorFlow is not available in this environment - using fallback implementation
-TENSORFLOW_AVAILABLE = False
+try:
+    import os
+    os.environ['KERAS_BACKEND'] = 'jax'
+    import keras
+    from keras.models import Sequential
+    from keras.layers import LSTM, Dense, Dropout
+    TENSORFLOW_AVAILABLE = True
+    print("Using Keras 3 with JAX backend for LSTM models")
+except ImportError as e:
+    TENSORFLOW_AVAILABLE = False
+    print(f"Keras/JAX not available - using fallback implementation: {e}")
 
 class LSTMPredictor:
     """LSTM-based stock prediction model for deep learning analysis"""

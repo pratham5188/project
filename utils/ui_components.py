@@ -212,7 +212,10 @@ class UIComponents:
             template="plotly_dark",
             showlegend=True,
             height=400,
-            margin=dict(l=0, r=0, t=30, b=0)
+            margin=dict(l=0, r=0, t=30, b=0),
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         return fig
@@ -232,7 +235,10 @@ class UIComponents:
         fig.update_layout(
             title=title,
             template="plotly_dark",
-            height=400
+            height=400,
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         return fig
@@ -265,7 +271,10 @@ class UIComponents:
         fig.update_layout(
             template="plotly_dark",
             height=300,
-            margin=dict(l=20, r=20, t=40, b=20)
+            margin=dict(l=20, r=20, t=40, b=20),
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         return fig
@@ -301,7 +310,10 @@ class UIComponents:
             yaxis=dict(title="Price"),
             yaxis2=dict(title="Volume", overlaying='y', side='right'),
             xaxis_rangeslider_visible=False,
-            height=500
+            height=500,
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         return fig

@@ -435,7 +435,10 @@ class AdvancedAnalytics:
             title="Advanced Technical Analysis",
             height=800,
             template="plotly_dark",
-            showlegend=False
+            showlegend=False,
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         return fig
@@ -506,7 +509,10 @@ class AdvancedAnalytics:
         fig.update_layout(
             title="Volume Analysis",
             height=600,
-            template="plotly_dark"
+            template="plotly_dark",
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         return fig
@@ -529,7 +535,10 @@ class AdvancedAnalytics:
             title="Stock Correlation Matrix",
             template="plotly_dark",
             width=600,
-            height=600
+            height=600,
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         return fig

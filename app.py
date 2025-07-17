@@ -513,8 +513,9 @@ class StockTrendAI:
             height=800,
             showlegend=True,
             xaxis_rangeslider_visible=False,
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0.1)'
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         st.plotly_chart(fig, use_container_width=True)
@@ -1166,7 +1167,10 @@ class StockTrendAI:
                 title="Monte Carlo Price Simulation",
                 xaxis_title="Days",
                 yaxis_title="Price (₹)",
-                template="plotly_dark"
+                template="plotly_dark",
+                paper_bgcolor='black',
+                plot_bgcolor='black',
+                font=dict(color='white')
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -1231,7 +1235,10 @@ class StockTrendAI:
                 title="Average Monthly Returns",
                 xaxis_title="Month",
                 yaxis_title="Return",
-                template="plotly_dark"
+                template="plotly_dark",
+                paper_bgcolor='black',
+                plot_bgcolor='black',
+                font=dict(color='white')
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -1254,7 +1261,10 @@ class StockTrendAI:
         fig.update_layout(
             title="Sentiment Distribution",
             template="plotly_dark",
-            height=400
+            height=400,
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         st.plotly_chart(fig, use_container_width=True)
@@ -1291,6 +1301,9 @@ class StockTrendAI:
                 xaxis_title="Date",
                 yaxis_title="Percentage Change (%)",
                 template="plotly_dark",
+                paper_bgcolor='black',
+                plot_bgcolor='black',
+                font=dict(color='white'),
                 height=500
             )
             

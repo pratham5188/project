@@ -767,6 +767,23 @@ def get_custom_css():
         border-radius: 10px;
         overflow: hidden;
         box-shadow: 0 0 20px rgba(0,255,136,0.1);
+        background-color: black !important;
+    }
+    
+    /* Ensure all plotly elements have black background */
+    .plotly .bg-white {
+        background-color: black !important;
+    }
+    
+    /* Plotly modebar styling */
+    .modebar {
+        background-color: black !important;
+    }
+    
+    /* Plotly legend styling */
+    .legend {
+        background-color: black !important;
+        color: white !important;
     }
     
     </style>

@@ -406,7 +406,7 @@ class AdvancedAnalytics:
                     x=stock_data.index,
                     y=stock_data['BB_Upper'],
                     name="BB Upper",
-                    line=dict(color='gray', dash='dash')
+                    line=dict(color='white', dash='dash')
                 ),
                 row=4, col=1
             )
@@ -416,7 +416,7 @@ class AdvancedAnalytics:
                     x=stock_data.index,
                     y=stock_data['BB_Lower'],
                     name="BB Lower",
-                    line=dict(color='gray', dash='dash'),
+                    line=dict(color='white', dash='dash'),
                     fill='tonexty'
                 ),
                 row=4, col=1

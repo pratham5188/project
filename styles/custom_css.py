@@ -91,7 +91,7 @@ def get_custom_css():
     
     .metric-title {
         font-size: 0.9rem;
-        color: #888;
+        color: #ffffff;
         margin-bottom: 0.5rem;
     }
     
@@ -109,7 +109,7 @@ def get_custom_css():
     
     .metric-positive { color: #00ff88; }
     .metric-negative { color: #ff0044; }
-    .metric-neutral { color: #888; }
+    .metric-neutral { color: #ffffff; }
     
     /* Progress Bar */
     .progress-container {
@@ -234,7 +234,7 @@ def get_custom_css():
     
     .loading-text {
         margin-top: 1rem;
-        color: #888;
+        color: #ffffff;
     }
     
     /* Card Container */
@@ -276,7 +276,7 @@ def get_custom_css():
         margin: 0.2rem;
     }
     
-    .badge-default { background: rgba(136,136,136,0.3); color: #888; }
+    .badge-default { background: rgba(136,136,136,0.3); color: #ffffff; }
     .badge-primary { background: linear-gradient(45deg, #00ff88, #0088ff); color: #fff; }
     .badge-success { background: linear-gradient(45deg, #00ff88, #88ff00); color: #fff; }
     .badge-warning { background: linear-gradient(45deg, #ffaa00, #ff8800); color: #fff; }
@@ -351,13 +351,13 @@ def get_custom_css():
     
     .news-source {
         font-size: 0.8rem;
-        color: #888;
+        color: #ffffff;
         font-weight: bold;
     }
     
     .news-time {
         font-size: 0.7rem;
-        color: #666;
+        color: #ffffff;
     }
     
     .news-headline {
@@ -369,13 +369,13 @@ def get_custom_css():
     
     .news-summary {
         font-size: 0.9rem;
-        color: #ccc;
+        color: #ffffff;
         margin-bottom: 0.5rem;
     }
     
     .news-sentiment {
         font-size: 0.8rem;
-        color: #888;
+        color: #ffffff;
     }
     
     /* Market Status */
@@ -434,7 +434,7 @@ def get_custom_css():
     
     .performance-label {
         font-size: 0.8rem;
-        color: #888;
+        color: #ffffff;
         margin-bottom: 0.5rem;
     }
     
@@ -485,7 +485,7 @@ def get_custom_css():
         padding: 0.7rem 1rem;
         background: transparent;
         border: none;
-        color: #888;
+        color: #ffffff;
         cursor: pointer;
         transition: all 0.3s ease;
         border-radius: 5px;
@@ -509,7 +509,7 @@ def get_custom_css():
     }
     
     .tooltip-text {
-        border-bottom: 1px dotted #888;
+        border-bottom: 1px dotted #ffffff;
         cursor: help;
     }
     
@@ -610,7 +610,7 @@ def get_custom_css():
     
     .current-price {
         font-size: 0.9rem;
-        color: #cccccc;
+        color: #ffffff;
         margin-bottom: 0.3rem;
     }
     
@@ -639,7 +639,7 @@ def get_custom_css():
     
     .metric-title {
         font-size: 0.8rem;
-        color: #aaaaaa;
+        color: #ffffff;
         margin-bottom: 0.5rem;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -661,7 +661,7 @@ def get_custom_css():
         background: linear-gradient(90deg, transparent, rgba(0,255,136,0.1), transparent);
         border-top: 1px solid rgba(0,255,136,0.3);
         font-size: 0.9rem;
-        color: #aaaaaa;
+        color: #ffffff;
     }
     
     /* Animations */

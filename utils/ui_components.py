@@ -301,7 +301,7 @@ class UIComponents:
             name="Volume",
             yaxis='y2',
             opacity=0.3,
-            marker_color='#888888'
+            marker_color='#ffffff'
         ))
         
         fig.update_layout(

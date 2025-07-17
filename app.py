@@ -1255,7 +1255,7 @@ class StockTrendAI:
             labels=['Positive', 'Negative', 'Neutral'],
             values=[distribution['positive'], distribution['negative'], distribution['neutral']],
             hole=0.3,
-            marker_colors=['#00ff88', '#ff0044', '#888888']
+            marker_colors=['#00ff88', '#ff0044', '#ffffff']
         )])
         
         fig.update_layout(

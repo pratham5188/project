@@ -371,3 +371,29 @@ class DataFetcher:
                 })
         
         return results
+    
+    def clear_cache_for_symbol(self, symbol, period=None):
+        """Clear cache for a specific symbol and optionally specific period"""
+        try:
+            # Handle different symbol formats
+            if not (symbol.startswith('^') or symbol.endswith('.NS') or symbol.endswith('.BO')):
+                symbol = symbol + '.NS'
+            
+            if period:
+                # Clear cache for specific symbol and period
+                intervals = ['1d', '5m', '15m']  # Common intervals
+                for interval in intervals:
+                    cache_key = f"{symbol}_{period}_{interval}"
+                    if cache_key in self.cache:
+                        del self.cache[cache_key]
+            else:
+                # Clear all cache entries for the symbol
+                keys_to_remove = [key for key in self.cache.keys() if key.startswith(symbol)]
+                for key in keys_to_remove:
+                    del self.cache[key]
+        except Exception as e:
+            print(f"Error clearing cache for {symbol}: {str(e)}")
+    
+    def clear_all_cache(self):
+        """Clear all cached data"""
+        self.cache.clear()

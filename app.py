@@ -44,6 +44,12 @@ if 'stock_data' not in st.session_state:
     st.session_state.stock_data = None
 if 'predictions' not in st.session_state:
     st.session_state.predictions = None
+if 'last_data_key' not in st.session_state:
+    st.session_state.last_data_key = None
+if 'last_xgboost_selection' not in st.session_state:
+    st.session_state.last_xgboost_selection = None
+if 'last_lstm_selection' not in st.session_state:
+    st.session_state.last_lstm_selection = None
 
 
 class StockTrendAI:
@@ -167,8 +173,14 @@ class StockTrendAI:
         
         # Manual refresh button
         if st.sidebar.button("🔄 Refresh Data", type="primary"):
+            # Clear all cached data
             st.session_state.stock_data = None
             st.session_state.predictions = None
+            st.session_state.last_data_key = None
+            st.session_state.last_update = None
+            # Clear data fetcher cache to force fresh data from API
+            if hasattr(self, 'data_fetcher'):
+                self.data_fetcher.clear_all_cache()
             st.rerun()
         
         # Display current selection info
@@ -195,10 +207,20 @@ class StockTrendAI:
         # Check if symbol or period changed - this forces cache refresh
         if (st.session_state.selected_stock != symbol or 
             st.session_state.selected_period != period):
+            # Clear all cached data when stock or period changes
             st.session_state.stock_data = None
             st.session_state.predictions = None
+            st.session_state.last_data_key = None
+            st.session_state.last_update = None
+            
+            # Clear the data fetcher cache for the specific symbol to force fresh data
+            if hasattr(self, 'data_fetcher'):
+                self.data_fetcher.clear_cache_for_symbol(symbol)
+            
             st.session_state.selected_stock = symbol
             st.session_state.selected_period = period
+            # Show user that analysis is being refreshed
+            st.info(f"🔄 Refreshing analysis for {symbol} with {period} timeframe...")
         
         # Check if we need to refresh data (cache for 5 minutes)
         if (st.session_state.stock_data is None or 
@@ -296,13 +318,19 @@ class StockTrendAI:
     
     def generate_predictions(self, stock_data, use_xgboost, use_lstm):
         """Generate predictions using selected models"""
-        # Create a unique key based on the data, symbol, and period
-        data_key = f"{st.session_state.selected_stock}_{st.session_state.selected_period}_{len(stock_data)}"
+        # Create a unique key based on the data, symbol, period, model selection, and data hash
+        import hashlib
+        data_hash = hashlib.md5(str(stock_data.index[-10:].tolist()).encode()).hexdigest()[:8]
+        data_key = f"{st.session_state.selected_stock}_{st.session_state.selected_period}_{use_xgboost}_{use_lstm}_{len(stock_data)}_{data_hash}"
         
-        # Force recalculation if data key changed or predictions are None
+        # Force recalculation if data key changed, predictions are None, or model selection changed
         if (st.session_state.predictions is None or 
-            getattr(st.session_state, 'last_data_key', None) != data_key):
+            getattr(st.session_state, 'last_data_key', None) != data_key or
+            getattr(st.session_state, 'last_xgboost_selection', None) != use_xgboost or
+            getattr(st.session_state, 'last_lstm_selection', None) != use_lstm):
             
+            # Show user that new predictions are being generated
+            st.info("🔮 Generating fresh predictions based on current timeframe and selected models...")
             predictions = {}
             
             if use_xgboost:
@@ -321,8 +349,11 @@ class StockTrendAI:
                     except Exception as e:
                         st.warning(f"LSTM prediction failed: {str(e)}")
             
+            # Update session state with new predictions and tracking variables
             st.session_state.predictions = predictions
             st.session_state.last_data_key = data_key
+            st.session_state.last_xgboost_selection = use_xgboost
+            st.session_state.last_lstm_selection = use_lstm
         
         return st.session_state.predictions
     

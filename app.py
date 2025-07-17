@@ -885,6 +885,9 @@ class StockTrendAI:
         
         # Sentiment overview
         if sentiment_data:
+            # Add CSS class wrapper for white text styling
+            st.markdown('<div class="news-sentiment-section">', unsafe_allow_html=True)
+            
             sent_col1, sent_col2, sent_col3 = st.columns(3)
             
             with sent_col1:
@@ -908,6 +911,8 @@ class StockTrendAI:
                     f"{sentiment_score:+.1f}%",
                     help="Positive/Negative sentiment strength"
                 )
+            
+            st.markdown('</div>', unsafe_allow_html=True)
             
             # Sentiment distribution chart
             self.render_sentiment_distribution(sentiment_data)
@@ -1243,6 +1248,9 @@ class StockTrendAI:
         
         distribution = sentiment_data['sentiment_distribution']
         
+        # Add CSS class wrapper for black background
+        st.markdown('<div class="sentiment-chart-container">', unsafe_allow_html=True)
+        
         # Create pie chart
         fig = go.Figure(data=[go.Pie(
             labels=['Positive', 'Negative', 'Neutral'],
@@ -1254,10 +1262,15 @@ class StockTrendAI:
         fig.update_layout(
             title="Sentiment Distribution",
             template="plotly_dark",
-            height=400
+            height=400,
+            paper_bgcolor='black',
+            plot_bgcolor='black',
+            font=dict(color='white')
         )
         
         st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
     
     def render_stock_comparison(self, compare_stocks):
         """Render stock comparison"""

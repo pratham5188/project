@@ -769,5 +769,49 @@ def get_custom_css():
         box-shadow: 0 0 20px rgba(0,255,136,0.1);
     }
     
+    /* News & Sentiment Analysis Specific Styles */
+    .news-sentiment-section [data-testid="metric-container"] {
+        color: white !important;
+    }
+    
+    .news-sentiment-section [data-testid="metric-container"] div {
+        color: white !important;
+    }
+    
+    .news-sentiment-section [data-testid="metric-container"] label {
+        color: white !important;
+    }
+    
+    .news-sentiment-section [data-testid="metric-container"] p {
+        color: white !important;
+    }
+    
+    .news-sentiment-section [data-testid="metric-container"] span {
+        color: white !important;
+    }
+    
+    /* Force white color for all text in news sentiment metrics */
+    .news-sentiment-section [data-testid="metric-container"] * {
+        color: white !important;
+    }
+    
+    /* Additional selectors for Streamlit metric components */
+    .news-sentiment-section div[data-testid="metric-container"] div:first-child {
+        color: white !important;
+    }
+    
+    .news-sentiment-section div[data-testid="metric-container"] div:last-child {
+        color: white !important;
+    }
+    
+    /* Sentiment distribution chart with black background */
+    .sentiment-chart-container .js-plotly-plot {
+        background-color: black !important;
+    }
+    
+    .sentiment-chart-container .plotly .main-svg {
+        background-color: black !important;
+    }
+    
     </style>
     """

@@ -1,0 +1,535 @@
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+from datetime import datetime, timedelta
+from scipy import stats
+import warnings
+warnings.filterwarnings('ignore')
+
+class AdvancedAnalytics:
+    """Advanced analytics and visualization tools for stock analysis"""
+    
+    def __init__(self):
+        self.analysis_cache = {}
+    
+    def perform_correlation_analysis(self, data_fetcher, symbols, period='3mo'):
+        """Perform correlation analysis between multiple stocks"""
+        price_data = {}
+        
+        for symbol in symbols:
+            try:
+                data = data_fetcher.get_stock_data(symbol, period)
+                if data is not None and not data.empty:
+                    price_data[symbol] = data['Close'].pct_change().dropna()
+            except Exception as e:
+                print(f"Error fetching data for {symbol}: {e}")
+        
+        if len(price_data) < 2:
+            return None
+        
+        # Create correlation matrix
+        correlation_df = pd.DataFrame(price_data)
+        correlation_matrix = correlation_df.corr()
+        
+        return {
+            'correlation_matrix': correlation_matrix,
+            'price_data': price_data,
+            'returns_data': correlation_df
+        }
+    
+    def calculate_risk_metrics(self, returns_data, risk_free_rate=0.06):
+        """Calculate comprehensive risk metrics"""
+        if returns_data.empty:
+            return None
+        
+        # Annualized returns
+        annual_return = returns_data.mean() * 252
+        
+        # Volatility (standard deviation)
+        volatility = returns_data.std() * np.sqrt(252)
+        
+        # Sharpe ratio
+        sharpe_ratio = (annual_return - risk_free_rate) / volatility
+        
+        # Maximum drawdown
+        cumulative_returns = (1 + returns_data).cumprod()
+        running_max = cumulative_returns.expanding().max()
+        drawdown = (cumulative_returns - running_max) / running_max
+        max_drawdown = drawdown.min()
+        
+        # Value at Risk (VaR) - 95% confidence
+        var_95 = returns_data.quantile(0.05)
+        
+        # Conditional VaR (Expected Shortfall)
+        cvar_95 = returns_data[returns_data <= var_95].mean()
+        
+        # Sortino ratio (downside deviation)
+        downside_returns = returns_data[returns_data < 0]
+        downside_deviation = downside_returns.std() * np.sqrt(252)
+        sortino_ratio = (annual_return - risk_free_rate) / downside_deviation if downside_deviation > 0 else np.inf
+        
+        # Calmar ratio
+        calmar_ratio = annual_return / abs(max_drawdown) if max_drawdown != 0 else np.inf
+        
+        return {
+            'annual_return': annual_return,
+            'volatility': volatility,
+            'sharpe_ratio': sharpe_ratio,
+            'max_drawdown': max_drawdown,
+            'var_95': var_95,
+            'cvar_95': cvar_95,
+            'sortino_ratio': sortino_ratio,
+            'calmar_ratio': calmar_ratio,
+            'skewness': returns_data.skew(),
+            'kurtosis': returns_data.kurtosis()
+        }
+    
+    def monte_carlo_simulation(self, stock_data, num_simulations=1000, time_horizon=30):
+        """Perform Monte Carlo simulation for price prediction"""
+        if stock_data.empty:
+            return None
+        
+        # Calculate daily returns
+        returns = stock_data['Close'].pct_change().dropna()
+        
+        # Parameters for simulation
+        mean_return = returns.mean()
+        volatility = returns.std()
+        current_price = stock_data['Close'].iloc[-1]
+        
+        # Generate random scenarios
+        simulations = []
+        
+        for _ in range(num_simulations):
+            # Generate random returns
+            random_returns = np.random.normal(mean_return, volatility, time_horizon)
+            
+            # Calculate price path
+            price_path = [current_price]
+            for return_val in random_returns:
+                price_path.append(price_path[-1] * (1 + return_val))
+            
+            simulations.append(price_path)
+        
+        # Convert to DataFrame
+        simulations_df = pd.DataFrame(simulations).T
+        
+        # Calculate statistics
+        final_prices = simulations_df.iloc[-1]
+        
+        statistics = {
+            'mean_final_price': final_prices.mean(),
+            'median_final_price': final_prices.median(),
+            'percentile_5': final_prices.quantile(0.05),
+            'percentile_95': final_prices.quantile(0.95),
+            'probability_profit': (final_prices > current_price).mean(),
+            'expected_return': ((final_prices.mean() - current_price) / current_price) * 100,
+            'simulations_df': simulations_df
+        }
+        
+        return statistics
+    
+    def fibonacci_retracement(self, stock_data, period=252):
+        """Calculate Fibonacci retracement levels"""
+        if len(stock_data) < period:
+            period = len(stock_data)
+        
+        recent_data = stock_data.tail(period)
+        high_price = recent_data['High'].max()
+        low_price = recent_data['Low'].min()
+        
+        # Fibonacci levels
+        diff = high_price - low_price
+        levels = {
+            '0.0%': high_price,
+            '23.6%': high_price - 0.236 * diff,
+            '38.2%': high_price - 0.382 * diff,
+            '50.0%': high_price - 0.5 * diff,
+            '61.8%': high_price - 0.618 * diff,
+            '76.4%': high_price - 0.764 * diff,
+            '100.0%': low_price
+        }
+        
+        return levels
+    
+    def elliott_wave_analysis(self, stock_data):
+        """Basic Elliott Wave pattern recognition"""
+        if len(stock_data) < 50:
+            return None
+        
+        # Identify local maxima and minima
+        prices = stock_data['Close'].values
+        
+        # Simple peak and trough detection
+        peaks = []
+        troughs = []
+        
+        for i in range(1, len(prices) - 1):
+            if prices[i] > prices[i-1] and prices[i] > prices[i+1]:
+                peaks.append((i, prices[i]))
+            elif prices[i] < prices[i-1] and prices[i] < prices[i+1]:
+                troughs.append((i, prices[i]))
+        
+        # Combine and sort by index
+        turning_points = sorted(peaks + troughs, key=lambda x: x[0])
+        
+        # Simple wave counting (basic implementation)
+        waves = []
+        for i in range(len(turning_points) - 1):
+            start_idx, start_price = turning_points[i]
+            end_idx, end_price = turning_points[i + 1]
+            
+            wave_type = 'up' if end_price > start_price else 'down'
+            magnitude = abs(end_price - start_price)
+            
+            waves.append({
+                'start_idx': start_idx,
+                'end_idx': end_idx,
+                'start_price': start_price,
+                'end_price': end_price,
+                'type': wave_type,
+                'magnitude': magnitude
+            })
+        
+        return {
+            'waves': waves,
+            'turning_points': turning_points,
+            'current_trend': waves[-1]['type'] if waves else 'neutral'
+        }
+    
+    def support_resistance_levels(self, stock_data, window=20):
+        """Identify support and resistance levels"""
+        if len(stock_data) < window * 2:
+            return None
+        
+        highs = stock_data['High'].rolling(window=window).max()
+        lows = stock_data['Low'].rolling(window=window).min()
+        
+        # Find significant levels
+        resistance_levels = []
+        support_levels = []
+        
+        current_price = stock_data['Close'].iloc[-1]
+        
+        # Get unique resistance levels
+        unique_highs = highs.dropna().unique()
+        for level in unique_highs:
+            if level > current_price:
+                resistance_levels.append(level)
+        
+        # Get unique support levels
+        unique_lows = lows.dropna().unique()
+        for level in unique_lows:
+            if level < current_price:
+                support_levels.append(level)
+        
+        # Sort and get closest levels
+        resistance_levels = sorted(resistance_levels)[:5]  # Top 5 resistance levels
+        support_levels = sorted(support_levels, reverse=True)[:5]  # Top 5 support levels
+        
+        return {
+            'resistance_levels': resistance_levels,
+            'support_levels': support_levels,
+            'current_price': current_price
+        }
+    
+    def volume_analysis(self, stock_data):
+        """Analyze volume patterns and trends"""
+        if 'Volume' not in stock_data.columns:
+            return None
+        
+        volume = stock_data['Volume']
+        price = stock_data['Close']
+        
+        # Volume moving averages
+        volume_ma_20 = volume.rolling(window=20).mean()
+        volume_ma_50 = volume.rolling(window=50).mean()
+        
+        # Volume relative to average
+        volume_ratio = volume / volume_ma_20
+        
+        # On-Balance Volume (OBV)
+        obv = (np.sign(price.diff()) * volume).fillna(0).cumsum()
+        
+        # Volume Price Trend (VPT)
+        vpt = (volume * price.pct_change()).fillna(0).cumsum()
+        
+        # Money Flow Index (MFI)
+        typical_price = (stock_data['High'] + stock_data['Low'] + stock_data['Close']) / 3
+        money_flow = typical_price * volume
+        
+        positive_flow = money_flow.where(typical_price > typical_price.shift(1), 0).rolling(window=14).sum()
+        negative_flow = money_flow.where(typical_price < typical_price.shift(1), 0).rolling(window=14).sum()
+        
+        mfi = 100 - (100 / (1 + positive_flow / negative_flow))
+        
+        return {
+            'volume_ma_20': volume_ma_20,
+            'volume_ma_50': volume_ma_50,
+            'volume_ratio': volume_ratio,
+            'obv': obv,
+            'vpt': vpt,
+            'mfi': mfi,
+            'avg_volume': volume.mean(),
+            'volume_trend': 'increasing' if volume_ma_20.iloc[-1] > volume_ma_50.iloc[-1] else 'decreasing'
+        }
+    
+    def seasonality_analysis(self, stock_data):
+        """Analyze seasonal patterns in stock performance"""
+        if len(stock_data) < 252:  # Need at least 1 year of data
+            return None
+        
+        # Add time-based features
+        data = stock_data.copy()
+        data['Month'] = data.index.month
+        data['DayOfWeek'] = data.index.dayofweek
+        data['Quarter'] = data.index.quarter
+        
+        # Calculate returns
+        data['Returns'] = data['Close'].pct_change()
+        
+        # Monthly patterns
+        monthly_returns = data.groupby('Month')['Returns'].agg(['mean', 'std', 'count'])
+        monthly_returns.index = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        
+        # Day of week patterns
+        dow_returns = data.groupby('DayOfWeek')['Returns'].agg(['mean', 'std', 'count'])
+        dow_returns.index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        
+        # Quarterly patterns
+        quarterly_returns = data.groupby('Quarter')['Returns'].agg(['mean', 'std', 'count'])
+        quarterly_returns.index = ['Q1', 'Q2', 'Q3', 'Q4']
+        
+        return {
+            'monthly_patterns': monthly_returns,
+            'daily_patterns': dow_returns,
+            'quarterly_patterns': quarterly_returns,
+            'best_month': monthly_returns['mean'].idxmax(),
+            'worst_month': monthly_returns['mean'].idxmin(),
+            'best_day': dow_returns['mean'].idxmax(),
+            'worst_day': dow_returns['mean'].idxmin()
+        }
+    
+    def create_advanced_chart(self, stock_data, analysis_type='comprehensive'):
+        """Create advanced interactive charts"""
+        if stock_data.empty:
+            return None
+        
+        if analysis_type == 'comprehensive':
+            return self._create_comprehensive_chart(stock_data)
+        elif analysis_type == 'volume':
+            return self._create_volume_chart(stock_data)
+        elif analysis_type == 'correlation':
+            return self._create_correlation_heatmap(stock_data)
+        
+    def _create_comprehensive_chart(self, stock_data):
+        """Create comprehensive multi-panel chart"""
+        fig = make_subplots(
+            rows=5, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.03,
+            subplot_titles=('Price & Volume', 'RSI', 'MACD', 'Bollinger Bands', 'Support/Resistance'),
+            row_heights=[0.4, 0.15, 0.15, 0.15, 0.15]
+        )
+        
+        # Price and volume
+        fig.add_trace(
+            go.Candlestick(
+                x=stock_data.index,
+                open=stock_data['Open'],
+                high=stock_data['High'],
+                low=stock_data['Low'],
+                close=stock_data['Close'],
+                name="Price"
+            ),
+            row=1, col=1
+        )
+        
+        # Add volume bars
+        fig.add_trace(
+            go.Bar(
+                x=stock_data.index,
+                y=stock_data['Volume'],
+                name="Volume",
+                yaxis='y2',
+                opacity=0.3
+            ),
+            row=1, col=1
+        )
+        
+        # RSI
+        if 'RSI' in stock_data.columns:
+            fig.add_trace(
+                go.Scatter(
+                    x=stock_data.index,
+                    y=stock_data['RSI'],
+                    name="RSI",
+                    line=dict(color='orange')
+                ),
+                row=2, col=1
+            )
+            
+            # RSI levels
+            fig.add_hline(y=70, line_dash="dash", line_color="red", row=2, col=1)
+            fig.add_hline(y=30, line_dash="dash", line_color="green", row=2, col=1)
+        
+        # MACD
+        if 'MACD' in stock_data.columns:
+            fig.add_trace(
+                go.Scatter(
+                    x=stock_data.index,
+                    y=stock_data['MACD'],
+                    name="MACD",
+                    line=dict(color='blue')
+                ),
+                row=3, col=1
+            )
+            
+            if 'MACD_Signal' in stock_data.columns:
+                fig.add_trace(
+                    go.Scatter(
+                        x=stock_data.index,
+                        y=stock_data['MACD_Signal'],
+                        name="MACD Signal",
+                        line=dict(color='red')
+                    ),
+                    row=3, col=1
+                )
+        
+        # Bollinger Bands
+        if 'BB_Upper' in stock_data.columns:
+            fig.add_trace(
+                go.Scatter(
+                    x=stock_data.index,
+                    y=stock_data['BB_Upper'],
+                    name="BB Upper",
+                    line=dict(color='gray', dash='dash')
+                ),
+                row=4, col=1
+            )
+            
+            fig.add_trace(
+                go.Scatter(
+                    x=stock_data.index,
+                    y=stock_data['BB_Lower'],
+                    name="BB Lower",
+                    line=dict(color='gray', dash='dash'),
+                    fill='tonexty'
+                ),
+                row=4, col=1
+            )
+        
+        # Support/Resistance levels
+        sr_levels = self.support_resistance_levels(stock_data)
+        if sr_levels:
+            for level in sr_levels['resistance_levels']:
+                fig.add_hline(y=level, line_dash="dash", line_color="red", row=5, col=1)
+            
+            for level in sr_levels['support_levels']:
+                fig.add_hline(y=level, line_dash="dash", line_color="green", row=5, col=1)
+        
+        fig.update_layout(
+            title="Advanced Technical Analysis",
+            height=800,
+            template="plotly_dark",
+            showlegend=False
+        )
+        
+        return fig
+    
+    def _create_volume_chart(self, stock_data):
+        """Create volume analysis chart"""
+        volume_analysis = self.volume_analysis(stock_data)
+        
+        if not volume_analysis:
+            return None
+        
+        fig = make_subplots(
+            rows=3, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+            subplot_titles=('Volume vs Price', 'On-Balance Volume', 'Money Flow Index'),
+            row_heights=[0.4, 0.3, 0.3]
+        )
+        
+        # Volume and price
+        fig.add_trace(
+            go.Bar(
+                x=stock_data.index,
+                y=stock_data['Volume'],
+                name="Volume",
+                opacity=0.7
+            ),
+            row=1, col=1
+        )
+        
+        fig.add_trace(
+            go.Scatter(
+                x=stock_data.index,
+                y=stock_data['Close'],
+                name="Price",
+                yaxis='y2',
+                line=dict(color='orange')
+            ),
+            row=1, col=1
+        )
+        
+        # OBV
+        fig.add_trace(
+            go.Scatter(
+                x=stock_data.index,
+                y=volume_analysis['obv'],
+                name="OBV",
+                line=dict(color='blue')
+            ),
+            row=2, col=1
+        )
+        
+        # MFI
+        fig.add_trace(
+            go.Scatter(
+                x=stock_data.index,
+                y=volume_analysis['mfi'],
+                name="MFI",
+                line=dict(color='purple')
+            ),
+            row=3, col=1
+        )
+        
+        # MFI levels
+        fig.add_hline(y=80, line_dash="dash", line_color="red", row=3, col=1)
+        fig.add_hline(y=20, line_dash="dash", line_color="green", row=3, col=1)
+        
+        fig.update_layout(
+            title="Volume Analysis",
+            height=600,
+            template="plotly_dark"
+        )
+        
+        return fig
+    
+    def _create_correlation_heatmap(self, correlation_matrix):
+        """Create correlation heatmap"""
+        fig = go.Figure(data=go.Heatmap(
+            z=correlation_matrix.values,
+            x=correlation_matrix.columns,
+            y=correlation_matrix.index,
+            colorscale='RdBu',
+            zmid=0,
+            text=correlation_matrix.round(2).values,
+            texttemplate="%{text}",
+            textfont={"size": 12},
+            hoverongaps=False
+        ))
+        
+        fig.update_layout(
+            title="Stock Correlation Matrix",
+            template="plotly_dark",
+            width=600,
+            height=600
+        )
+        
+        return fig

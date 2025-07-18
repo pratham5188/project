@@ -7,6 +7,16 @@ class TechnicalIndicators:
     def __init__(self):
         pass
     
+    def check_data_sufficiency(self, data, min_periods=50):
+        """Check if data has sufficient periods for meaningful technical analysis"""
+        if data is None or data.empty:
+            return False, "No data available"
+        
+        if len(data) < min_periods:
+            return False, f"Insufficient data: {len(data)} periods (minimum {min_periods} recommended)"
+        
+        return True, "Sufficient data"
+    
     def calculate_sma(self, data, window=20):
         """Calculate Simple Moving Average"""
         return data['Close'].rolling(window=window).mean()
@@ -103,6 +113,11 @@ class TechnicalIndicators:
     def add_all_indicators(self, data):
         """Add all technical indicators to the dataframe"""
         df = data.copy()
+        
+        # Check data sufficiency
+        is_sufficient, message = self.check_data_sufficiency(data, min_periods=20)
+        if not is_sufficient:
+            print(f"Warning: {message}. Some indicators may not be reliable.")
         
         try:
             # Moving Averages

@@ -440,141 +440,185 @@ class StockTrendAI:
         """Render interactive stock chart with technical indicators"""
         st.markdown("### 📊 Interactive Stock Chart with Technical Analysis")
         
-        # Create subplots
-        fig = make_subplots(
-            rows=4, cols=1,
-            shared_xaxes=True,
-            vertical_spacing=0.05,
-            subplot_titles=('Price & Moving Averages', 'Volume', 'RSI', 'MACD'),
-            row_heights=[0.5, 0.15, 0.175, 0.175]
-        )
+        try:
+            # Ensure we have valid data
+            if stock_data is None or stock_data.empty:
+                st.error("❌ No data available to display chart")
+                return
+                
+            # Clean data and handle NaN values
+            chart_data = stock_data.copy()
+            
+            # Ensure required OHLCV columns exist
+            required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+            missing_cols = [col for col in required_cols if col not in chart_data.columns]
+            if missing_cols:
+                st.error(f"❌ Missing required columns: {missing_cols}")
+                return
+            
+            # Fill NaN values in OHLCV data
+            for col in required_cols:
+                if chart_data[col].isna().any():
+                    chart_data[col] = chart_data[col].fillna(method='ffill').fillna(method='bfill')
+            
+            # Create subplots
+            fig = make_subplots(
+                rows=4, cols=1,
+                shared_xaxes=True,
+                vertical_spacing=0.05,
+                subplot_titles=('Price & Moving Averages', 'Volume', 'RSI', 'MACD'),
+                row_heights=[0.5, 0.15, 0.175, 0.175]
+            )
         
-        # Candlestick chart
-        fig.add_trace(
-            go.Candlestick(
-                x=stock_data.index,
-                open=stock_data['Open'],
-                high=stock_data['High'],
-                low=stock_data['Low'],
-                close=stock_data['Close'],
-                name="Price",
-                increasing_line_color='#00ff88',
-                decreasing_line_color='#ff0044'
-            ),
-            row=1, col=1
-        )
-        
-        # Moving averages
-        if 'SMA_20' in stock_data.columns:
+            # Candlestick chart
             fig.add_trace(
-                go.Scatter(
-                    x=stock_data.index,
-                    y=stock_data['SMA_20'],
-                    name="SMA 20",
-                    line=dict(color='#ffaa00', width=2)
+                go.Candlestick(
+                    x=chart_data.index,
+                    open=chart_data['Open'],
+                    high=chart_data['High'],
+                    low=chart_data['Low'],
+                    close=chart_data['Close'],
+                    name="Price",
+                    increasing_line_color='#00ff88',
+                    decreasing_line_color='#ff0044'
                 ),
                 row=1, col=1
             )
         
-        if 'SMA_50' in stock_data.columns:
-            fig.add_trace(
-                go.Scatter(
-                    x=stock_data.index,
-                    y=stock_data['SMA_50'],
-                    name="SMA 50",
-                    line=dict(color='#00aaff', width=2)
-                ),
-                row=1, col=1
-            )
-        
-        # Bollinger Bands
-        if 'BB_Upper' in stock_data.columns:
-            fig.add_trace(
-                go.Scatter(
-                    x=stock_data.index,
-                    y=stock_data['BB_Upper'],
-                    name="BB Upper",
-                    line=dict(color='rgba(255,255,255,0.3)', width=1),
-                    fill=None
-                ),
-                row=1, col=1
-            )
+            # Moving averages with NaN handling
+            if 'SMA_20' in chart_data.columns and not chart_data['SMA_20'].isna().all():
+                sma_20_clean = chart_data['SMA_20'].dropna()
+                if len(sma_20_clean) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=sma_20_clean.index,
+                            y=sma_20_clean.values,
+                            name="SMA 20",
+                            line=dict(color='#ffaa00', width=2),
+                            connectgaps=False
+                        ),
+                        row=1, col=1
+                    )
             
+            if 'SMA_50' in chart_data.columns and not chart_data['SMA_50'].isna().all():
+                sma_50_clean = chart_data['SMA_50'].dropna()
+                if len(sma_50_clean) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=sma_50_clean.index,
+                            y=sma_50_clean.values,
+                            name="SMA 50",
+                            line=dict(color='#00aaff', width=2),
+                            connectgaps=False
+                        ),
+                        row=1, col=1
+                    )
+        
+            # Bollinger Bands with NaN handling
+            if ('BB_Upper' in chart_data.columns and 'BB_Lower' in chart_data.columns and
+                not chart_data['BB_Upper'].isna().all() and not chart_data['BB_Lower'].isna().all()):
+                
+                bb_data = chart_data[['BB_Upper', 'BB_Lower']].dropna()
+                if len(bb_data) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=bb_data.index,
+                            y=bb_data['BB_Upper'],
+                            name="BB Upper",
+                            line=dict(color='rgba(255,255,255,0.3)', width=1),
+                            fill=None,
+                            connectgaps=False
+                        ),
+                        row=1, col=1
+                    )
+                    
+                    fig.add_trace(
+                        go.Scatter(
+                            x=bb_data.index,
+                            y=bb_data['BB_Lower'],
+                            name="BB Lower",
+                            line=dict(color='rgba(255,255,255,0.3)', width=1),
+                            fill='tonexty',
+                            fillcolor='rgba(255,255,255,0.1)',
+                            connectgaps=False
+                        ),
+                        row=1, col=1
+                    )
+        
+            # Volume
             fig.add_trace(
-                go.Scatter(
-                    x=stock_data.index,
-                    y=stock_data['BB_Lower'],
-                    name="BB Lower",
-                    line=dict(color='rgba(255,255,255,0.3)', width=1),
-                    fill='tonexty',
-                    fillcolor='rgba(255,255,255,0.1)'
+                go.Bar(
+                    x=chart_data.index,
+                    y=chart_data['Volume'],
+                    name="Volume",
+                    marker_color='rgba(0,255,136,0.6)'
                 ),
-                row=1, col=1
+                row=2, col=1
             )
         
-        # Volume
-        fig.add_trace(
-            go.Bar(
-                x=stock_data.index,
-                y=stock_data['Volume'],
-                name="Volume",
-                marker_color='rgba(0,255,136,0.6)'
-            ),
-            row=2, col=1
-        )
+            # RSI with NaN handling
+            if 'RSI' in chart_data.columns and not chart_data['RSI'].isna().all():
+                rsi_clean = chart_data['RSI'].dropna()
+                if len(rsi_clean) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=rsi_clean.index,
+                            y=rsi_clean.values,
+                            name="RSI",
+                            line=dict(color='#ff6600', width=2),
+                            connectgaps=False
+                        ),
+                        row=3, col=1
+                    )
+                    
+                    # RSI levels
+                    fig.add_hline(y=70, line_dash="dash", line_color="red", row=3, col=1)
+                    fig.add_hline(y=30, line_dash="dash", line_color="green", row=3, col=1)
         
-        # RSI
-        if 'RSI' in stock_data.columns:
-            fig.add_trace(
-                go.Scatter(
-                    x=stock_data.index,
-                    y=stock_data['RSI'],
-                    name="RSI",
-                    line=dict(color='#ff6600', width=2)
-                ),
-                row=3, col=1
-            )
+            # MACD with NaN handling
+            if 'MACD' in chart_data.columns and not chart_data['MACD'].isna().all():
+                macd_clean = chart_data['MACD'].dropna()
+                if len(macd_clean) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=macd_clean.index,
+                            y=macd_clean.values,
+                            name="MACD",
+                            line=dict(color='#00ff88', width=2),
+                            connectgaps=False
+                        ),
+                        row=4, col=1
+                    )
+                
+                if 'MACD_Signal' in chart_data.columns and not chart_data['MACD_Signal'].isna().all():
+                    signal_clean = chart_data['MACD_Signal'].dropna()
+                    if len(signal_clean) > 0:
+                        fig.add_trace(
+                            go.Scatter(
+                                x=signal_clean.index,
+                                y=signal_clean.values,
+                                name="MACD Signal",
+                                line=dict(color='#ff4400', width=2),
+                                connectgaps=False
+                            ),
+                            row=4, col=1
+                        )
+                
+                if 'MACD_Histogram' in chart_data.columns and not chart_data['MACD_Histogram'].isna().all():
+                    hist_clean = chart_data['MACD_Histogram'].dropna()
+                    if len(hist_clean) > 0:
+                        fig.add_trace(
+                            go.Bar(
+                                x=hist_clean.index,
+                                y=hist_clean.values,
+                                name="MACD Histogram",
+                                marker_color='rgba(255,255,255,0.3)'
+                            ),
+                            row=4, col=1
+                        )
             
-            # RSI levels
-            fig.add_hline(y=70, line_dash="dash", line_color="red", row=3, col=1)
-            fig.add_hline(y=30, line_dash="dash", line_color="green", row=3, col=1)
-        
-        # MACD
-        if 'MACD' in stock_data.columns:
-            fig.add_trace(
-                go.Scatter(
-                    x=stock_data.index,
-                    y=stock_data['MACD'],
-                    name="MACD",
-                    line=dict(color='#00ff88', width=2)
-                ),
-                row=4, col=1
-            )
-            
-            if 'MACD_Signal' in stock_data.columns:
-                fig.add_trace(
-                    go.Scatter(
-                        x=stock_data.index,
-                        y=stock_data['MACD_Signal'],
-                        name="MACD Signal",
-                        line=dict(color='#ff4400', width=2)
-                    ),
-                    row=4, col=1
-                )
-            
-            if 'MACD_Histogram' in stock_data.columns:
-                fig.add_trace(
-                    go.Bar(
-                        x=stock_data.index,
-                        y=stock_data['MACD_Histogram'],
-                        name="MACD Histogram",
-                        marker_color='rgba(255,255,255,0.3)'
-                    ),
-                    row=4, col=1
-                )
-        
-        # Update layout with comprehensive styling
-        fig.update_layout(
+            # Update layout with comprehensive styling
+            fig.update_layout(
             title=dict(
                 text=f"{symbol} - Technical Analysis Dashboard",
                 font=dict(color='white', size=20)
@@ -594,21 +638,52 @@ class StockTrendAI:
             )
         )
         
-        # Update all axes to have white text
-        fig.update_xaxes(
-            gridcolor='rgba(255,255,255,0.1)',
-            linecolor='rgba(255,255,255,0.2)',
-            tickfont=dict(color='white'),
-            titlefont=dict(color='white')
-        )
-        fig.update_yaxes(
-            gridcolor='rgba(255,255,255,0.1)',
-            linecolor='rgba(255,255,255,0.2)',
-            tickfont=dict(color='white'),
-            titlefont=dict(color='white')
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
+            # Update all axes to have white text
+            fig.update_xaxes(
+                gridcolor='rgba(255,255,255,0.1)',
+                linecolor='rgba(255,255,255,0.2)',
+                tickfont=dict(color='white'),
+                titlefont=dict(color='white')
+            )
+            fig.update_yaxes(
+                gridcolor='rgba(255,255,255,0.1)',
+                linecolor='rgba(255,255,255,0.2)',
+                tickfont=dict(color='white'),
+                titlefont=dict(color='white')
+            )
+            
+            # Display the chart
+            st.plotly_chart(fig, use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"❌ Error rendering chart: {str(e)}")
+            st.info("💡 This might be due to insufficient data for technical indicators. Try selecting a longer time period.")
+            
+            # Show a simple price chart as fallback
+            try:
+                if stock_data is not None and not stock_data.empty and 'Close' in stock_data.columns:
+                    st.markdown("### 📈 Fallback: Simple Price Chart")
+                    fallback_fig = go.Figure()
+                    fallback_fig.add_trace(
+                        go.Scatter(
+                            x=stock_data.index,
+                            y=stock_data['Close'],
+                            mode='lines',
+                            name='Close Price',
+                            line=dict(color='#00ff88', width=2)
+                        )
+                    )
+                    fallback_fig.update_layout(
+                        title=f"{symbol} - Price Chart",
+                        template="plotly_dark",
+                        height=400,
+                        paper_bgcolor='black',
+                        plot_bgcolor='black',
+                        font=dict(color='white')
+                    )
+                    st.plotly_chart(fallback_fig, use_container_width=True)
+            except Exception as fallback_error:
+                st.error(f"❌ Unable to display any chart: {str(fallback_error)}")
     
     def render_market_summary(self, stock_data, symbol):
         """Render market summary with key metrics"""

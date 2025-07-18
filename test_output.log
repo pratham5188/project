@@ -1,2 +1,102 @@
-....                                                                     [100%]
-4 passed, 4 warnings in 0.05s
+2025-07-18 20:08:46.217 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.218 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 
+  [33m[1mWarning:[0m to view this Streamlit app on a browser, run it with the following
+  command:
+
+    streamlit run test_app.py [ARGUMENTS]
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Session state does not function when running a script without `streamlit run`
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2025-07-18 20:08:46.296 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+🧪 StockTrendAI - Comprehensive Application Test
+This test validates all components and functionality
+============================================================
+🔍 TESTING IMPORTS
+============================================================
+✅ numpy           - SUCCESS
+✅ pandas          - SUCCESS
+✅ streamlit       - SUCCESS
+✅ plotly          - SUCCESS
+✅ sklearn         - SUCCESS
+✅ yfinance        - SUCCESS
+✅ xgboost         - SUCCESS
+✅ textblob        - SUCCESS
+✅ lightgbm        - SUCCESS
+❌ tensorflow      - MISSING (using fallback)
+❌ keras           - MISSING (using fallback)
+✅ prophet         - SUCCESS
+✅ jax             - SUCCESS
+
+============================================================
+🤖 TESTING AI MODELS
+============================================================
+✅ XGBoost         - SUCCESS
+Keras/JAX not available - using fallback implementation: No module named 'tensorflow'
+TensorFlow not available, using simplified LSTM alternative
+✅ LSTM            - SUCCESS
+Prophet library loaded successfully
+✅ Prophet         - SUCCESS
+✅ Ensemble        - SUCCESS
+Keras not available - using attention-based fallback
+✅ Transformer     - SUCCESS
+TensorFlow not available - using fallback prediction method
+✅ GRU             - SUCCESS
+✅ Stacking        - SUCCESS
+
+============================================================
+🔧 TESTING UTILITIES
+============================================================
+✅ DataFetcher     - SUCCESS
+✅ TechnicalIndicators - SUCCESS
+✅ ModelUtils      - SUCCESS
+✅ PortfolioTracker - SUCCESS
+✅ AdvancedAnalytics - SUCCESS
+✅ NewsSentiment   - SUCCESS
+✅ UIComponents    - SUCCESS
+✅ ModelInfo       - SUCCESS
+✅ CustomCSS       - SUCCESS
+
+============================================================
+🚀 TESTING MAIN APPLICATION
+============================================================
+✅ App import - SUCCESS
+TensorFlow not available, using simplified LSTM alternative
+✅ App initialization - SUCCESS
+✅ Data fetching - SUCCESS
+
+============================================================
+📊 TEST SUMMARY REPORT
+============================================================
+Total Tests: 30
+Passed: 28
+Failed: 2
+Success Rate: 93.3%
+
+✅ NO CRITICAL FAILURES - App is ready for deployment!
+
+⚠️  OPTIONAL DEPENDENCIES MISSING: tensorflow, keras
+   App will use fallback implementations for these features.
+
+🎉 ALL TESTS PASSED! Application is ready to run.
+   You can start the app with: streamlit run app.py

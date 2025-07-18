@@ -1388,21 +1388,18 @@ class StockTrendAI:
                     util_col1, util_col2 = st.columns(2)
                     
                     with util_col1:
-                        st.markdown("### ⚙️ App Settings")
-                        st.info("🎨 Color theme: Dark Neon (with white text)")
-                        st.info("🤖 AI Models: 5 Advanced Models Available")
+                        # st.markdown("### ⚙️ App Settings")
+                        # st.info("🎨 Color theme: Dark Neon (with white text)")
+                        # st.info("🤖 AI Models: 5 Advanced Models Available")
                         st.info("📊 Data Source: Yahoo Finance (Indian Markets)")
-                        
-                        # Model status
                         st.markdown("### 🔋 Model Status")
                         model_status = {
                             "XGBoost": "✅ Ready",
-                            "LSTM": "✅ Ready", 
+                            "LSTM": "✅ Ready",
                             "Prophet": "✅ Ready",
                             "Ensemble": "✅ Ready",
                             "Transformer": "✅ Ready"
                         }
-                        
                         for model, status in model_status.items():
                             st.markdown(f"**{model}:** {status}")
                     
@@ -2376,9 +2373,9 @@ class StockTrendAI:
             st.markdown("## 🔧 Utilities")
             util_col1, util_col2 = st.columns(2)
             with util_col1:
-                st.markdown("### ⚙️ App Settings")
-                st.info("🎨 Color theme: Dark Neon (with white text)")
-                st.info("🤖 AI Models: 5 Advanced Models Available")
+                # st.markdown("### ⚙️ App Settings")
+                # st.info("🎨 Color theme: Dark Neon (with white text)")
+                # st.info("🤖 AI Models: 5 Advanced Models Available")
                 st.info("📊 Data Source: Yahoo Finance (Indian Markets)")
                 st.markdown("### 🔋 Model Status")
                 model_status = {

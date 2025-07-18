@@ -594,6 +594,27 @@ def get_custom_css():
         text-align: center;
         color: #ffaa00;
         text-shadow: 0 0 10px rgba(255,170,0,0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .confidence-bar {
+        width: 80%;
+        height: 4px;
+        background-color: rgba(255,255,255,0.2);
+        border-radius: 2px;
+        overflow: hidden;
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+    
+    .confidence-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: all 0.3s ease;
+        display: block;
+        box-shadow: 0 0 5px currentColor;
     }
     
     .price-prediction {
@@ -955,6 +976,50 @@ def get_custom_css():
     /* Dropdown option hover */
     .stSelectbox [role="option"]:hover {
         background-color: rgba(0,255,136,0.2) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Additional dropdown styling for stubborn elements */
+    .stSelectbox [data-baseweb="popover"] {
+        background-color: #000000 !important;
+    }
+    
+    .stSelectbox [data-baseweb="popover"] > div {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+    }
+    
+    /* Option menu container */
+    [data-baseweb="menu"] {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+    }
+    
+    /* Option items */
+    [data-baseweb="menu"] [role="option"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    [data-baseweb="menu"] [role="option"]:hover {
+        background-color: rgba(0,255,136,0.2) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Select value display */
+    .stSelectbox [data-baseweb="select"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Universal dropdown override */
+    div[data-baseweb] {
+        background-color: #000000 !important;
+    }
+    
+    /* Force all dropdown-related elements to black */
+    [role="listbox"], [role="option"], [data-baseweb*="select"], [data-baseweb*="menu"] {
+        background-color: #000000 !important;
         color: #ffffff !important;
     }
     

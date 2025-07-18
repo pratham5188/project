@@ -421,11 +421,20 @@ class StockTrendAI:
                 price_change = predicted_price - current_price
                 change_percent = (price_change / current_price) * 100
                 
+                # Generate confidence indicator
+                confidence_indicator = self.get_confidence_indicator(confidence)
+                confidence_color = self.get_confidence_color(confidence)
+                
                 st.markdown(f"""
                 <div class="prediction-card {color_class}">
                     <div class="model-name">{icon} {model_name}</div>
                     <div class="prediction-direction">{arrow} {direction}</div>
-                    <div class="confidence">Confidence: {confidence:.1f}%</div>
+                    <div class="confidence" style="color: {confidence_color}">
+                        {confidence_indicator} Confidence: {confidence:.1f}%
+                        <span class="confidence-bar">
+                            <span class="confidence-fill" style="width: {confidence}%; background-color: {confidence_color}"></span>
+                        </span>
+                    </div>
                     <div class="price-prediction">
                         <div class="current-price">Current: ₹{current_price:.2f}</div>
                         <div class="predicted-price">Predicted: ₹{predicted_price:.2f}</div>
@@ -436,6 +445,45 @@ class StockTrendAI:
                 </div>
                 """, unsafe_allow_html=True)
     
+    def get_confidence_indicator(self, confidence):
+        """Get confidence indicator icon and text"""
+        if confidence >= 85:
+            return "🟢 Very High"
+        elif confidence >= 75:
+            return "🔵 High"
+        elif confidence >= 65:
+            return "🟡 Medium"
+        elif confidence >= 50:
+            return "🟠 Low"
+        else:
+            return "🔴 Very Low"
+    
+    def get_confidence_color(self, confidence):
+        """Get confidence color based on level"""
+        if confidence >= 85:
+            return "#00ff88"  # Green
+        elif confidence >= 75:
+            return "#00aaff"  # Blue
+        elif confidence >= 65:
+            return "#ffaa00"  # Orange
+        elif confidence >= 50:
+            return "#ff6600"  # Dark Orange
+        else:
+            return "#ff0044"  # Red
+    
+    def get_confidence_interpretation(self, confidence):
+        """Get detailed confidence interpretation"""
+        if confidence >= 85:
+            return "🟢 **Excellent Confidence:** Models are highly confident in this prediction. Strong agreement across algorithms with robust statistical backing."
+        elif confidence >= 75:
+            return "🔵 **High Confidence:** Good model agreement with solid prediction reliability. Recommended for trading decisions with proper risk management."
+        elif confidence >= 65:
+            return "🟡 **Medium Confidence:** Moderate certainty in prediction. Consider additional analysis and use smaller position sizes."
+        elif confidence >= 50:
+            return "🟠 **Low Confidence:** Limited certainty. Use as supporting indicator only, not for primary trading decisions."
+        else:
+            return "🔴 **Very Low Confidence:** High uncertainty in prediction. Consider waiting for better market conditions or more data."
+
     def render_stock_chart(self, stock_data, symbol):
         """Render interactive stock chart with technical indicators"""
         st.markdown("### 📊 Interactive Stock Chart with Technical Analysis")
@@ -1208,23 +1256,69 @@ class StockTrendAI:
                 """)
     
     def render_confidence_meter(self, predictions):
-        """Render confidence meter for predictions"""
+        """Render enhanced confidence meter for predictions"""
         if not predictions:
             return
         
-        # Calculate average confidence
+        st.markdown("### 🎯 Prediction Confidence Analysis")
+        
+        # Calculate confidence statistics
         confidences = [pred.get('confidence', 0) for pred in predictions.values()]
         avg_confidence = sum(confidences) / len(confidences) if confidences else 0
+        max_confidence = max(confidences) if confidences else 0
+        min_confidence = min(confidences) if confidences else 0
         
-        # Create confidence gauge
-        fig = self.ui_components.create_gauge_chart(
-            avg_confidence, 
-            "Prediction Confidence",
-            min_val=0,
-            max_val=100
-        )
+        # Create columns for confidence display
+        col1, col2, col3 = st.columns(3)
         
-        st.plotly_chart(fig, use_container_width=True)
+        with col1:
+            confidence_indicator = self.get_confidence_indicator(avg_confidence)
+            confidence_color = self.get_confidence_color(avg_confidence)
+            st.markdown(f"""
+            <div style="text-align: center; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid {confidence_color};">
+                <h4 style="color: {confidence_color}; margin: 0;">{confidence_indicator}</h4>
+                <h2 style="color: {confidence_color}; margin: 0.5rem 0;">{avg_confidence:.1f}%</h2>
+                <p style="color: white; margin: 0;">Average Confidence</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+            <div style="text-align: center; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);">
+                <h4 style="color: #00ff88; margin: 0;">📈 Highest</h4>
+                <h2 style="color: #00ff88; margin: 0.5rem 0;">{max_confidence:.1f}%</h2>
+                <p style="color: white; margin: 0;">Best Model</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            st.markdown(f"""
+            <div style="text-align: center; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);">
+                <h4 style="color: #ff6600; margin: 0;">📉 Lowest</h4>
+                <h2 style="color: #ff6600; margin: 0.5rem 0;">{min_confidence:.1f}%</h2>
+                <p style="color: white; margin: 0;">Least Certain</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Confidence interpretation
+        st.markdown("#### 🔍 Confidence Interpretation")
+        interpretation = self.get_confidence_interpretation(avg_confidence)
+        st.info(interpretation)
+        
+        # Individual model confidence breakdown
+        if len(predictions) > 1:
+            st.markdown("#### 📊 Model Confidence Breakdown")
+            for model_name, pred_data in predictions.items():
+                conf = pred_data.get('confidence', 0)
+                indicator = self.get_confidence_indicator(conf)
+                color = self.get_confidence_color(conf)
+                
+                st.markdown(f"""
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 5px; margin: 0.2rem 0; border-left: 3px solid {color};">
+                    <span style="color: white;">{model_name}</span>
+                    <span style="color: {color};">{indicator} {conf:.1f}%</span>
+                </div>
+                """, unsafe_allow_html=True)
     
     def render_technical_indicators_summary(self, stock_data, current_price):
         """Render technical indicators summary"""

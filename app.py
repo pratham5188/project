@@ -2405,6 +2405,42 @@ class StockTrendAI:
                 - Combine with technical analysis
                 - Monitor news sentiment
                 """)
+                st.markdown("""
+                <style>
+                /* Dropdowns (select, multiselect) */
+                div[data-baseweb='select'] > div {
+                    background-color: #111 !important;
+                    color: #fff !important;
+                    border-radius: 8px !important;
+                    border: 1px solid #00ff88 !important;
+                }
+                div[data-baseweb='select'] input {
+                    background-color: #111 !important;
+                    color: #fff !important;
+                }
+                div[data-baseweb='tag'] {
+                    background-color: #222 !important;
+                    color: #fff !important;
+                    border-radius: 6px !important;
+                    border: 1px solid #00ff88 !important;
+                }
+                /* Text input, text area */
+                .stTextInput > div > input,
+                .stTextArea textarea {
+                    background-color: #111 !important;
+                    color: #fff !important;
+                    border-radius: 8px !important;
+                    border: 1px solid #00ff88 !important;
+                }
+                /* Number input */
+                .stNumberInput input {
+                    background-color: #111 !important;
+                    color: #fff !important;
+                    border-radius: 8px !important;
+                    border: 1px solid #00ff88 !important;
+                }
+                </style>
+                """, unsafe_allow_html=True)
 
 # Run the application
 if __name__ == "__main__":

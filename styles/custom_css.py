@@ -1320,5 +1320,11 @@ def get_custom_css():
         background-color: #000000 !important;
     }
     
+    /* Hide Streamlit sidebar collapse/expand hamburger button */
+    [aria-label="Collapse sidebar"],
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+    
     </style>
     """

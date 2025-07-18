@@ -462,7 +462,7 @@ class NewsSentimentAnalyzer:
                         trending = self.get_trending_topics(news_sentiment.get('news_items', []))
                         if trending:
                             st.markdown("#### 🔥 Trending Topics")
-                            for topic, frequency in trending.items():
+                            for topic, frequency in trending:
                                 st.info(f"🏷️ **{topic}**: Mentioned {frequency} times")
                 
                 except Exception as e:

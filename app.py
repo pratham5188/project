@@ -7,6 +7,7 @@ from plotly.subplots import make_subplots
 import time
 from datetime import datetime, timedelta
 import warnings
+import concurrent.futures
 warnings.filterwarnings('ignore')
 
 # Import custom modules
@@ -2362,63 +2363,32 @@ if __name__ == "__main__":
                 
                 with st.spinner("🧠 AI models are analyzing market data..."):
                     predictions = {}
-                    
-                    # Run selected models
+                    futures = {}
+                    model_funcs = []
                     if use_xgboost:
-                        try:
-                            xgb_pred = app.xgb_predictor.predict(stock_data)
-                            if xgb_pred:
-                                predictions['XGBoost'] = xgb_pred
-                        except Exception as e:
-                            st.warning(f"⚠️ XGBoost prediction failed: {str(e)}")
-                    
+                        model_funcs.append(('XGBoost', app.xgb_predictor.predict))
                     if use_lstm:
-                        try:
-                            lstm_pred = app.lstm_predictor.predict(stock_data)
-                            if lstm_pred:
-                                predictions['LSTM'] = lstm_pred
-                        except Exception as e:
-                            st.warning(f"⚠️ LSTM prediction failed: {str(e)}")
-                    
+                        model_funcs.append(('LSTM', app.lstm_predictor.predict))
                     if use_prophet:
-                        try:
-                            prophet_pred = app.prophet_predictor.predict(stock_data)
-                            if prophet_pred:
-                                predictions['Prophet'] = prophet_pred
-                        except Exception as e:
-                            st.warning(f"⚠️ Prophet prediction failed: {str(e)}")
-                    
+                        model_funcs.append(('Prophet', app.prophet_predictor.predict))
                     if use_ensemble:
-                        try:
-                            ensemble_pred = app.ensemble_predictor.predict(stock_data)
-                            if ensemble_pred:
-                                predictions['Ensemble'] = ensemble_pred
-                        except Exception as e:
-                            st.warning(f"⚠️ Ensemble prediction failed: {str(e)}")
-                    
+                        model_funcs.append(('Ensemble', app.ensemble_predictor.predict))
                     if use_transformer:
-                        try:
-                            transformer_pred = app.transformer_predictor.predict(stock_data)
-                            if transformer_pred:
-                                predictions['Transformer'] = transformer_pred
-                        except Exception as e:
-                            st.warning(f"⚠️ Transformer prediction failed: {str(e)}")
-                    
+                        model_funcs.append(('Transformer', app.transformer_predictor.predict))
                     if use_gru:
-                        try:
-                            gru_pred = app.gru_predictor.predict(stock_data)
-                            if gru_pred:
-                                predictions['GRU'] = gru_pred
-                        except Exception as e:
-                            st.warning(f"⚠️ GRU prediction failed: {str(e)}")
-                    
+                        model_funcs.append(('GRU', app.gru_predictor.predict))
                     if use_stacking:
-                        try:
-                            stacking_pred = app.stacking_predictor.predict(stock_data)
-                            if stacking_pred:
-                                predictions['Stacking'] = stacking_pred
-                        except Exception as e:
-                            st.warning(f"⚠️ Stacking prediction failed: {str(e)}")
+                        model_funcs.append(('Stacking', app.stacking_predictor.predict))
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        for name, func in model_funcs:
+                            futures[name] = executor.submit(func, stock_data)
+                        for name, future in futures.items():
+                            try:
+                                result = future.result()
+                                if result:
+                                    predictions[name] = result
+                            except Exception as e:
+                                st.warning(f"⚠️ {name} prediction failed: {str(e)}")
                 
                 # Display predictions
                 if predictions:

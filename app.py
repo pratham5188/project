@@ -40,7 +40,7 @@ st.set_page_config(
 # Apply custom CSS and initialize error handling
 try:
     st.markdown(get_custom_css(), unsafe_allow_html=True)
-    # Add global centering and spacing CSS for all main content
+    # Add global centering and spacing CSS for all main content and tabs
     st.markdown("""
     <style>
     .main .block-container {
@@ -67,6 +67,31 @@ try:
     div[data-baseweb='tag'] {
         margin-left: auto !important;
         margin-right: auto !important;
+    }
+    /* Ensure all metric cards in AI Predictions tab are the same size */
+    .metric-card {
+        min-width: 180px;
+        max-width: 200px;
+        height: 120px;
+        margin: 0 auto 16px auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0,0,0,0.7);
+        border-radius: 12px;
+        border: 1px solid #00ff88;
+        box-shadow: 0 0 10px #00ff8855;
+    }
+    .metric-title {
+        font-size: 1rem;
+        color: #00ff88;
+        margin-bottom: 0.3rem;
+    }
+    .metric-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #fff;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -124,7 +149,7 @@ class StockTrendAI:
         # Initialize control panel state
         if 'show_control_panel' not in st.session_state:
             st.session_state.show_control_panel = False
-        # Always show the main toggle button at the top
+        # Only show the main toggle button at the top (remove any secondary toggles)
         button_text = "🔽 Hide Settings" if st.session_state.show_control_panel else "▶️ Show Settings"
         button_style = """
         <style>
@@ -167,7 +192,6 @@ class StockTrendAI:
             <div style="color: #00ff88; font-size: 1.5rem; cursor: pointer;">{arrow_icon}</div>
         </div>
         """, unsafe_allow_html=True)
-        
         # Show minimized view if collapsed
         if not st.session_state.show_control_panel:
             # Minimized view - show only essential info with better visibility
@@ -184,7 +208,6 @@ class StockTrendAI:
                 <p style="color: #ffffff; font-size: 0.8rem; margin: 0;">Click 'Show Settings' above to expand</p>
             </div>
             """, unsafe_allow_html=True)
-            
             # Show current selection info even when collapsed
             current_stock = st.session_state.get('selected_stock', DEFAULT_STOCK)
             current_period = st.session_state.get('selected_period', '1y')
@@ -201,7 +224,6 @@ class StockTrendAI:
                 <div style="color: white; font-size: 0.9rem;">Period: {current_period}</div>
             </div>
             """, unsafe_allow_html=True)
-            
             # Return default values when collapsed
             return (st.session_state.get('selected_stock', DEFAULT_STOCK),
                    st.session_state.get('selected_period', '1y'),

@@ -195,7 +195,7 @@ class StockTrendAI:
         st.sidebar.markdown(f"""
         <div style="
             display: flex; 
-            justify-content: space-between; 
+            justify-content: flex-start; 
             align-items: center; 
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             padding: 1rem;
@@ -205,7 +205,6 @@ class StockTrendAI:
             box-shadow: 0 0 15px rgba(0,255,136,0.3);
         ">
             <h2 style="color: #00ff88; margin: 0; font-size: 1.2rem;">🎯 Control Panel</h2>
-            <div style="color: #00ff88; font-size: 1.5rem; cursor: pointer;">{arrow_icon}</div>
         </div>
         """, unsafe_allow_html=True)
         # Show minimized view if collapsed
@@ -220,7 +219,7 @@ class StockTrendAI:
                 text-align: center;
                 box-shadow: 0 0 15px rgba(0,255,136,0.2);
             ">
-                <p style="color: #00ff88; margin: 0; font-weight: bold;">{arrow_icon} Settings Hidden</p>
+                <p style="color: #00ff88; margin: 0; font-weight: bold;">Settings Hidden</p>
                 <p style="color: #ffffff; font-size: 0.8rem; margin: 0;">Click 'Show Settings' above to expand</p>
             </div>
             """, unsafe_allow_html=True)

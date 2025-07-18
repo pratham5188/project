@@ -36,13 +36,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-    # Apply custom CSS (with cache clear)
-    st.markdown(get_custom_css(), unsafe_allow_html=True)
-    
-    # Force cache clear for immediate visibility of changes
-    if 'cache_cleared' not in st.session_state:
-        st.rerun()
-        st.session_state.cache_cleared = True
+# Apply custom CSS (with cache clear)
+st.markdown(get_custom_css(), unsafe_allow_html=True)
+
+# Force cache clear for immediate visibility of changes
+if 'cache_cleared' not in st.session_state:
+    st.rerun()
+    st.session_state.cache_cleared = True
 
 # Initialize session state
 if 'selected_stock' not in st.session_state:

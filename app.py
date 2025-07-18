@@ -1334,6 +1334,20 @@ class StockTrendAI:
                     
                     # Market comparison
                     st.markdown("### 📊 Market Comparison")
+                    st.markdown("""
+                    <style>
+                    div[data-baseweb='select'] > div {
+                        background-color: #111 !important;
+                        color: #fff !important;
+                        border-radius: 8px !important;
+                        border: 1px solid #00ff88 !important;
+                    }
+                    div[data-baseweb='select'] input {
+                        background-color: #111 !important;
+                        color: #fff !important;
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
                     compare_stocks = st.multiselect(
                         "Select stocks to compare",
                         options=list(INDIAN_STOCKS.keys()),

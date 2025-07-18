@@ -1250,13 +1250,16 @@ class StockTrendAI:
                     now = datetime.now(ist)
                     current_date = now.strftime('%A, %d %B %Y')
                     market_info = self.get_market_status_detailed()
-                    status_color = "green" if market_info["status"] == "OPEN" else "red"
+                    status_open = market_info["status"] == "OPEN"
+                    status_color = "#00ff88" if status_open else "#ff0044"
+                    status_dot = "🟢" if status_open else "🔴"
+                    open_close_label = "Market Open" if status_open else "Market Closed"
                     st.markdown(f"""
-                    <div style='display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: flex-start; margin-bottom: 12px; background: #181818; border-radius: 10px; padding: 16px 24px;'>
-                        <div style='font-size: 1.1rem; color: #fff;'><b>📅 Date:</b> {current_date}</div>
-                        <div style='font-size: 1.1rem; color: #fff;'><b>⏰ Time:</b> {market_info['current_time']}</div>
-                        <div style='font-size: 1.1rem; color: #fff;'><b>🕒 Market Hours:</b> {market_info['market_hours']}</div>
-                        <div style='font-size: 1.1rem;'><b>Market Status:</b> <span style='color: {status_color}; font-weight: bold;'>{market_info['status']}</span></div>
+                    <div style='display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: flex-start; margin-bottom: 18px; background: #181818; border-radius: 12px; padding: 20px 28px; border: 2px solid {status_color}; box-shadow: 0 0 12px {status_color}33;'>
+                        <div style='font-size: 1.25rem; color: #fff;'><b>📅 Date:</b> {current_date}</div>
+                        <div style='font-size: 1.25rem; color: #fff;'><b>⏰ Time:</b> {market_info['current_time']}</div>
+                        <div style='font-size: 1.25rem; color: #fff;'><b>🕒 Market Hours:</b> {market_info['market_hours']}</div>
+                        <div style='font-size: 1.25rem; display: flex; align-items: center;'><span style="font-size:2rem; margin-right:8px;">{status_dot}</span> <b style='color: {status_color}; font-size: 1.25rem;'>{open_close_label}</b></div>
                     </div>
                     """, unsafe_allow_html=True)
                     

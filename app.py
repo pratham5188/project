@@ -1243,16 +1243,22 @@ class StockTrendAI:
                 stock_data = self.load_and_process_data(selected_stock, period)
                 
                 if stock_data is not None and not stock_data.empty:
-                    # Market status indicator
-                    col1, col2 = st.columns([1, 4])
-                    with col1:
-                        # Get actual market status with detailed information
-                        market_info = self.get_market_status_detailed()
-                        status_color = "green" if market_info["status"] == "OPEN" else "red"
-                        st.markdown(f"**Market Status:** :{status_color}[{market_info['status']}]")
-                    with col2:
-                        st.markdown(f"**Current Time:** {market_info['current_time']}")
-                        st.markdown(f"**Market Hours:** {market_info['market_hours']}")
+                    # --- Market Real-Time Status, Open/Close, and Date ---
+                    import pytz
+                    from datetime import datetime
+                    ist = pytz.timezone('Asia/Kolkata')
+                    now = datetime.now(ist)
+                    current_date = now.strftime('%A, %d %B %Y')
+                    market_info = self.get_market_status_detailed()
+                    status_color = "green" if market_info["status"] == "OPEN" else "red"
+                    st.markdown(f"""
+                    <div style='display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: flex-start; margin-bottom: 12px; background: #181818; border-radius: 10px; padding: 16px 24px;'>
+                        <div style='font-size: 1.1rem; color: #fff;'><b>📅 Date:</b> {current_date}</div>
+                        <div style='font-size: 1.1rem; color: #fff;'><b>⏰ Time:</b> {market_info['current_time']}</div>
+                        <div style='font-size: 1.1rem; color: #fff;'><b>🕒 Market Hours:</b> {market_info['market_hours']}</div>
+                        <div style='font-size: 1.1rem;'><b>Market Status:</b> <span style='color: {status_color}; font-weight: bold;'>{market_info['status']}</span></div>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
                     # Render market summary
                     self.render_market_summary(stock_data, selected_stock)

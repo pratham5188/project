@@ -724,7 +724,6 @@ class StockTrendAI:
         change_percent = (price_change / current_price) * 100
         
         st.markdown("### 🚀 AI Meta-Ensemble Prediction")
-        
         st.markdown(f"""
         <div style="
             background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(26,26,46,0.8));
@@ -744,35 +743,29 @@ class StockTrendAI:
                     {confidence_indicator} {confidence:.1f}%
                 </div>
             </div>
-            
             <div style="font-size: 3rem; color: {border_color}; margin: 1rem 0; text-shadow: 0 0 20px {border_color};">
                 {arrow} {direction}
             </div>
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
                 <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Current Price</div>
                     <div style="color: #ffffff; font-size: 1.3rem; font-weight: bold;">₹{current_price:.2f}</div>
                 </div>
-                
                 <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid {border_color};">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Predicted Price</div>
                     <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">₹{predicted_price:.2f}</div>
                 </div>
-                
                 <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Expected Change</div>
                     <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">{price_change:+.2f} ({change_percent:+.2f}%)</div>
                 </div>
             </div>
-            
             <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
                 <div style="color: #ffffff; font-size: 1rem; margin-bottom: 0.5rem;">📊 Consensus Analysis</div>
                 <div style="color: {confidence_color}; font-size: 0.9rem;">
                     {consensus_strength:.1f}% model agreement | Combined confidence from {model_count} AI algorithms
                 </div>
             </div>
-            
             <div style="
                 width: 100%; 
                 height: 6px; 
@@ -791,6 +784,34 @@ class StockTrendAI:
             </div>
         </div>
         """, unsafe_allow_html=True)
+        # Add a bar chart for model confidence/agreement
+        import plotly.graph_objects as go
+        model_names = [d['model'] for d in combined_pred['detailed_analysis']]
+        confidences = [d['confidence'] for d in combined_pred['detailed_analysis']]
+        directions = [d['direction'] for d in combined_pred['detailed_analysis']]
+        colors = [
+            '#00ff88' if d == 'UP' else '#ff0044' if d == 'DOWN' else '#ffaa00'
+            for d in directions
+        ]
+        fig = go.Figure(data=[
+            go.Bar(
+                x=model_names,
+                y=confidences,
+                marker_color=colors,
+                text=[f"{c:.1f}%" for c in confidences],
+                textposition='auto',
+                hovertext=directions,
+                name="Model Confidence (%)"
+            )
+        ])
+        fig.update_layout(
+            title="7 AI Models Confidence/Agreement",
+            xaxis_title="Model",
+            yaxis_title="Confidence (%)",
+            template="plotly_dark",
+            height=350
+        )
+        st.plotly_chart(fig, use_container_width=True)
     
     def render_prediction_cards(self, predictions, current_price):
         """Render prediction cards with neon glow effects"""

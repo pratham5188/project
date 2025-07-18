@@ -801,7 +801,7 @@ class StockTrendAI:
             st.warning(f"⚠️ Error in combined prediction calculation: {str(e)}")
             return None
     
-    def render_combined_prediction_card(self, combined_pred, current_price):
+    def render_combined_prediction_card(self, combined_pred, current_price, company_name=None):
         """Render the main combined prediction card"""
         if not combined_pred:
             return
@@ -849,6 +849,7 @@ class StockTrendAI:
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <div style="font-size: 1.2rem; color: {border_color}; font-weight: bold;">
                     🤖 {model_count} AI Models Combined
+                    <div style='font-size:0.9rem; color:#aaa; font-weight:normal; margin-top:2px;'>{company_name}</div>
                 </div>
                 <div style="font-size: 1.2rem; color: {confidence_color};">
                     {confidence_indicator} {confidence:.1f}%
@@ -935,7 +936,11 @@ class StockTrendAI:
         # Generate and display combined prediction first
         combined_prediction = self.generate_combined_prediction(predictions, current_price)
         if combined_prediction:
-            self.render_combined_prediction_card(combined_prediction, current_price)
+            # Get company name for display
+            selected_stock = st.session_state.get('selected_stock', None)
+            from config.settings import INDIAN_STOCKS
+            company_name = INDIAN_STOCKS.get(selected_stock, selected_stock) if selected_stock else ''
+            self.render_combined_prediction_card(combined_prediction, current_price, company_name)
             
             # Add some spacing
             st.markdown("---")

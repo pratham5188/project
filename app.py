@@ -84,7 +84,7 @@ class StockTrendAI:
         st.markdown("""
         <div class="neon-header">
             <h1 class="main-title">🚀 StockTrendAI </h1>
-            <p class="subtitle">🔥 AI-Powered Indian Stock Market Predictor with 7 Advanced ML Models </p>
+            <p class="subtitle">AI-Powered Indian Stock Market Predictor with 7 Advanced ML Models</p>
         </div>
         """, unsafe_allow_html=True)
     

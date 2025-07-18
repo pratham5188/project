@@ -31,20 +31,17 @@ def get_custom_css():
     
     .main-title {
         font-family: 'Orbitron', monospace;
-        font-size: 3.8rem;
+        font-size: 3.5rem;
         font-weight: 900;
-        background: linear-gradient(45deg, #ff0000, #00ff88, #00aaff, #ff00aa, #ffff00);
-        background-size: 500% 500%;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        animation: gradient-shift 2s ease infinite;
-        text-shadow: 0 0 40px rgba(255,0,0,0.8);
+        color: #00ff88;
+        text-shadow: 
+            0 0 10px #00ff88,
+            0 0 20px #00ff88,
+            0 0 30px #00ff88,
+            0 0 40px #00ff88;
         margin: 0;
-        border: 4px solid #00ff88;
-        padding: 1rem;
-        border-radius: 20px;
-        background-color: rgba(0,0,0,0.95) !important;
+        text-align: center;
+        animation: neon-glow 2s ease-in-out infinite alternate;
     }
     
     .subtitle {
@@ -704,6 +701,24 @@ def get_custom_css():
     @keyframes float {
         0%, 100% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes neon-glow {
+        0% { 
+            text-shadow: 
+                0 0 10px #00ff88,
+                0 0 20px #00ff88,
+                0 0 30px #00ff88,
+                0 0 40px #00ff88;
+        }
+        100% { 
+            text-shadow: 
+                0 0 20px #00ff88,
+                0 0 30px #00ff88,
+                0 0 40px #00ff88,
+                0 0 50px #00ff88,
+                0 0 60px #00ff88;
+        }
     }
     
     /* Mobile Responsiveness */

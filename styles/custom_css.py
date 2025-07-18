@@ -1127,6 +1127,7 @@ def get_custom_css():
         background-color: #000000 !important;
         border: 1px solid rgba(0,255,136,0.5) !important;
         border-radius: 8px !important;
+        color: #ffffff !important;
     }
     
     /* Multiselect input field */
@@ -1140,20 +1141,24 @@ def get_custom_css():
     .stMultiSelect [data-baseweb="popover"] {
         background-color: #000000 !important;
         border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
     }
     
     /* Multiselect dropdown options */
     .stMultiSelect [data-baseweb="menu"] {
         background-color: #000000 !important;
+        border-radius: 8px !important;
     }
     
     .stMultiSelect [data-baseweb="option"] {
         background-color: #000000 !important;
         color: #ffffff !important;
+        padding: 8px 12px !important;
     }
     
     .stMultiSelect [data-baseweb="option"]:hover {
         background-color: rgba(0,255,136,0.2) !important;
+        color: #ffffff !important;
     }
     
     /* Multiselect selected items */
@@ -1161,11 +1166,66 @@ def get_custom_css():
         background-color: rgba(0,255,136,0.3) !important;
         color: #ffffff !important;
         border: 1px solid rgba(0,255,136,0.6) !important;
+        border-radius: 4px !important;
     }
     
     /* Multiselect placeholder text */
     .stMultiSelect [data-baseweb="input"] {
         color: rgba(255,255,255,0.7) !important;
+    }
+    
+    /* Enhanced Selectbox Styling */
+    .stSelectbox > div > div {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+        color: #ffffff !important;
+    }
+    
+    .stSelectbox [data-baseweb="select"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    .stSelectbox [data-baseweb="select"] input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    .stSelectbox [data-baseweb="popover"] {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    .stSelectbox [data-baseweb="menu"] {
+        background-color: #000000 !important;
+    }
+    
+    .stSelectbox [data-baseweb="option"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        padding: 8px 12px !important;
+    }
+    
+    .stSelectbox [data-baseweb="option"]:hover {
+        background-color: rgba(0,255,136,0.2) !important;
+        color: #ffffff !important;
+    }
+    
+    /* Text input styling for better visibility */
+    .stTextInput > div > div > input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: rgba(0,255,136,0.8) !important;
+        box-shadow: 0 0 0 0.2rem rgba(0,255,136,0.25) !important;
     }
     
     /* ========== DATE INPUT STYLING ========== */

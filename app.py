@@ -85,7 +85,7 @@ class StockTrendAI:
         if 'show_control_panel' not in st.session_state:
             st.session_state.show_control_panel = False
         
-        # 3-dot menu button with improved styling
+        # Enhanced 3-dot menu header with improved styling
         st.sidebar.markdown("""
         <div style="
             display: flex; 
@@ -96,14 +96,37 @@ class StockTrendAI:
             border-radius: 10px;
             margin-bottom: 1rem;
             border: 1px solid #00ff88;
+            box-shadow: 0 0 15px rgba(0,255,136,0.3);
         ">
             <h2 style="color: #00ff88; margin: 0; font-size: 1.2rem;">🎯 Control Panel</h2>
+            <div style="color: #00ff88; font-size: 1.5rem; cursor: pointer;">⋮</div>
         </div>
         """, unsafe_allow_html=True)
         
-        # 3-dot menu button
-        if st.sidebar.button("⚙️ Settings" if not st.session_state.show_control_panel else "🔽 Hide Settings", 
-                            type="primary", use_container_width=True):
+        # Enhanced toggle button with improved visibility
+        button_text = "🔽 Hide Settings" if st.session_state.show_control_panel else "⚙️ Show Settings"
+        button_style = """
+        <style>
+        .stButton > button {
+            width: 100%;
+            background: linear-gradient(45deg, rgba(0,255,136,0.8), rgba(0,136,255,0.8)) !important;
+            color: white !important;
+            border: 2px solid #00ff88 !important;
+            border-radius: 10px !important;
+            font-weight: bold !important;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.3s ease !important;
+        }
+        .stButton > button:hover {
+            background: linear-gradient(45deg, rgba(0,255,136,1), rgba(0,136,255,1)) !important;
+            box-shadow: 0 0 20px rgba(0,255,136,0.5) !important;
+            transform: translateY(-2px) !important;
+        }
+        </style>
+        """
+        st.sidebar.markdown(button_style, unsafe_allow_html=True)
+        
+        if st.sidebar.button(button_text, type="primary", use_container_width=True):
             st.session_state.show_control_panel = not st.session_state.show_control_panel
             st.rerun()
         
@@ -118,27 +141,14 @@ class StockTrendAI:
                 border: 1px solid rgba(255,255,255,0.1);
                 text-align: center;
             ">
-                <div style="color: #00ff88; font-size: 0.9rem; margin-bottom: 0.5rem;">📊 Current Selection</div>
-                <div style="color: white; font-weight: bold;">{}</div>
-                <div style="color: #888; font-size: 0.8rem; margin-top: 0.5rem;">Click Settings to configure</div>
+                <p style="color: #00ff88; margin: 0;">Settings Hidden</p>
+                <p style="color: #ffffff; font-size: 0.8rem; margin: 0;">Click above to expand</p>
             </div>
-            """.format(INDIAN_STOCKS.get(st.session_state.get('selected_stock', DEFAULT_STOCK), 
-                                       st.session_state.get('selected_stock', DEFAULT_STOCK))), 
-            unsafe_allow_html=True)
-            
-            # Return current settings without showing full controls
-            return (st.session_state.get('selected_stock', DEFAULT_STOCK),
-                   st.session_state.get('selected_period', '1y'),
-                   st.session_state.get('use_xgboost', True),
-                   st.session_state.get('use_lstm', True), 
-                   st.session_state.get('use_prophet', True),
-                   st.session_state.get('use_ensemble', True),
-                   st.session_state.get('use_transformer', True),
-                   st.session_state.get('use_gru', True),
-                   st.session_state.get('use_stacking', True),
-                   st.session_state.get('auto_refresh', False))
+            """, unsafe_allow_html=True)
+            return
         
-        # Full control panel when expanded
+        # Full control panel
+        st.sidebar.markdown("### 📈 Stock Selection")
         
         # Selection type
         selection_type = st.sidebar.radio(
@@ -498,127 +508,148 @@ class StockTrendAI:
     
     def generate_combined_prediction(self, predictions, current_price):
         """Generate a single combined prediction from all AI models"""
-        if not predictions:
-            return None
-        
-        # Initialize aggregation variables
-        total_confidence = 0
-        total_weighted_price = 0
-        total_weights = 0
-        up_votes = 0
-        down_votes = 0
-        hold_votes = 0
-        
-        # Model weights based on typical performance
-        model_weights = {
-            'XGBoost': 1.2,      # Good with structured data
-            'LSTM': 1.1,         # Good with sequences
-            'Prophet': 1.0,      # Good with trends
-            'Ensemble': 1.3,     # Multi-model approach
-            'Transformer': 1.1,  # Good with patterns
-            'GRU': 1.0,         # Efficient RNN
-            'Stacking': 1.4      # Meta-learning approach
-        }
-        
-        detailed_analysis = []
-        
-        for model_name, pred_data in predictions.items():
-            confidence = pred_data.get('confidence', 0)
-            direction = pred_data.get('direction', 'HOLD')
-            predicted_price = pred_data.get('predicted_price', current_price)
+        try:
+            if not predictions or len(predictions) == 0:
+                return None
             
-            # Get model weight
-            weight = model_weights.get(model_name, 1.0)
-            confidence_weight = (confidence / 100.0) * weight
+            # Initialize aggregation variables
+            total_confidence = 0
+            total_weighted_price = 0
+            total_weights = 0
+            up_votes = 0
+            down_votes = 0
+            hold_votes = 0
             
-            # Aggregate confidence and price
-            total_confidence += confidence * weight
-            total_weighted_price += predicted_price * confidence_weight
-            total_weights += weight
+            # Model weights based on typical performance
+            model_weights = {
+                'XGBoost': 1.2,      # Good with structured data
+                'LSTM': 1.1,         # Good with sequences
+                'Prophet': 1.0,      # Good with trends
+                'Ensemble': 1.3,     # Multi-model approach
+                'Transformer': 1.1,  # Good with patterns
+                'GRU': 1.0,         # Efficient RNN
+                'Stacking': 1.4      # Meta-learning approach
+            }
             
-            # Count direction votes
-            if direction == 'UP':
-                up_votes += confidence_weight
-            elif direction == 'DOWN':
-                down_votes += confidence_weight
-            else:
-                hold_votes += confidence_weight
+            detailed_analysis = []
+            valid_predictions = 0
             
-            # Store detailed analysis
-            detailed_analysis.append({
-                'model': model_name,
-                'direction': direction,
-                'confidence': confidence,
-                'predicted_price': predicted_price,
-                'weight': weight
-            })
-        
-        # Calculate combined metrics
-        if total_weights > 0:
+            for model_name, pred_data in predictions.items():
+                try:
+                    # Validate prediction data
+                    if not isinstance(pred_data, dict):
+                        continue
+                    
+                    confidence = pred_data.get('confidence', 0)
+                    direction = pred_data.get('direction', 'HOLD')
+                    predicted_price = pred_data.get('predicted_price', current_price)
+                    
+                    # Validate numeric values
+                    if not isinstance(confidence, (int, float)) or confidence < 0 or confidence > 100:
+                        confidence = 50  # Default confidence
+                    
+                    if not isinstance(predicted_price, (int, float)) or predicted_price <= 0:
+                        predicted_price = current_price
+                    
+                    if direction not in ['UP', 'DOWN', 'HOLD']:
+                        direction = 'HOLD'
+                    
+                    # Get model weight
+                    weight = model_weights.get(model_name, 1.0)
+                    confidence_weight = (confidence / 100.0) * weight
+                    
+                    # Aggregate confidence and price
+                    total_confidence += confidence * weight
+                    total_weighted_price += predicted_price * confidence_weight
+                    total_weights += weight
+                    
+                    # Count direction votes
+                    if direction == 'UP':
+                        up_votes += confidence_weight
+                    elif direction == 'DOWN':
+                        down_votes += confidence_weight
+                    else:
+                        hold_votes += confidence_weight
+                    
+                    # Store detailed analysis
+                    detailed_analysis.append({
+                        'model': model_name,
+                        'direction': direction,
+                        'confidence': confidence,
+                        'predicted_price': predicted_price,
+                        'weight': weight
+                    })
+                    
+                    valid_predictions += 1
+                    
+                except Exception as model_error:
+                    # Skip this model if there's an error
+                    continue
+            
+            # Check if we have any valid predictions
+            if valid_predictions == 0 or total_weights == 0:
+                return None
+            
+            # Calculate combined metrics
             avg_confidence = total_confidence / total_weights
-            avg_predicted_price = total_weighted_price / (total_confidence / 100.0) if total_confidence > 0 else current_price
-        else:
-            avg_confidence = 0
-            avg_predicted_price = current_price
-        
-        # Determine combined direction
-        total_directional_votes = up_votes + down_votes + hold_votes
-        if total_directional_votes > 0:
-            up_percentage = (up_votes / total_directional_votes) * 100
-            down_percentage = (down_votes / total_directional_votes) * 100
-            hold_percentage = (hold_votes / total_directional_votes) * 100
+            weighted_avg_price = total_weighted_price / (total_weights * avg_confidence / 100.0) if avg_confidence > 0 else current_price
             
-            if up_percentage > down_percentage and up_percentage > hold_percentage:
-                combined_direction = 'UP'
-            elif down_percentage > up_percentage and down_percentage > hold_percentage:
-                combined_direction = 'DOWN'
-            else:
+            # Determine overall direction
+            total_direction_votes = up_votes + down_votes + hold_votes
+            if total_direction_votes == 0:
                 combined_direction = 'HOLD'
-        else:
-            combined_direction = 'HOLD'
-            up_percentage = 0
-            down_percentage = 0
-            hold_percentage = 0
-        
-        # Calculate consensus strength
-        max_vote_percentage = max(up_percentage, down_percentage, hold_percentage) if total_directional_votes > 0 else 0
-        consensus_strength = max_vote_percentage
-        
-        # Adjust confidence based on consensus
-        final_confidence = min(95, avg_confidence * (consensus_strength / 100.0) * 1.2)
-        
-        # Generate reasoning
-        dominant_models = [analysis for analysis in detailed_analysis 
-                          if analysis['direction'] == combined_direction]
-        
-        reasoning_parts = []
-        reasoning_parts.append(f"Combined analysis of {len(predictions)} AI models")
-        reasoning_parts.append(f"Consensus: {consensus_strength:.1f}% agreement on {combined_direction}")
-        
-        if dominant_models:
-            top_models = sorted(dominant_models, key=lambda x: x['confidence'], reverse=True)[:3]
-            model_names = [model['model'] for model in top_models]
-            reasoning_parts.append(f"Leading models: {', '.join(model_names)}")
-        
-        # Price change analysis
-        price_change = avg_predicted_price - current_price
-        price_change_percent = (price_change / current_price) * 100
-        
-        return {
-            'direction': combined_direction,
-            'confidence': final_confidence,
-            'predicted_price': avg_predicted_price,
-            'price_change': price_change,
-            'price_change_percent': price_change_percent,
-            'consensus_strength': consensus_strength,
-            'model_count': len(predictions),
-            'up_votes_percent': up_percentage if total_directional_votes > 0 else 0,
-            'down_votes_percent': down_percentage if total_directional_votes > 0 else 0,
-            'hold_votes_percent': hold_percentage if total_directional_votes > 0 else 0,
-            'reasoning': ' | '.join(reasoning_parts),
-            'detailed_analysis': detailed_analysis,
-            'model_type': 'Meta-AI Ensemble'
-        }
+                consensus_strength = 0
+            else:
+                up_percent = (up_votes / total_direction_votes) * 100
+                down_percent = (down_votes / total_direction_votes) * 100
+                hold_percent = (hold_votes / total_direction_votes) * 100
+                
+                if up_percent > down_percent and up_percent > hold_percent:
+                    combined_direction = 'UP'
+                    consensus_strength = up_percent
+                elif down_percent > up_percent and down_percent > hold_percent:
+                    combined_direction = 'DOWN'
+                    consensus_strength = down_percent
+                else:
+                    combined_direction = 'HOLD'
+                    consensus_strength = hold_percent
+            
+            # Calculate price change
+            price_change = weighted_avg_price - current_price
+            price_change_percent = (price_change / current_price) * 100 if current_price > 0 else 0
+            
+            # Generate reasoning
+            reasoning_parts = []
+            reasoning_parts.append(f"Combined analysis of {valid_predictions} AI models")
+            reasoning_parts.append(f"Weighted average confidence: {avg_confidence:.1f}%")
+            reasoning_parts.append(f"Consensus strength: {consensus_strength:.1f}%")
+            
+            if abs(price_change_percent) > 5:
+                reasoning_parts.append(f"Significant price movement expected: {price_change_percent:+.1f}%")
+            elif abs(price_change_percent) > 2:
+                reasoning_parts.append(f"Moderate price movement expected: {price_change_percent:+.1f}%")
+            else:
+                reasoning_parts.append(f"Minor price movement expected: {price_change_percent:+.1f}%")
+            
+            return {
+                'direction': combined_direction,
+                'confidence': avg_confidence,
+                'predicted_price': weighted_avg_price,
+                'consensus_strength': consensus_strength,
+                'model_count': valid_predictions,
+                'price_change': price_change,
+                'price_change_percent': price_change_percent,
+                'up_votes_percent': (up_votes / total_direction_votes) * 100 if total_direction_votes > 0 else 0,
+                'down_votes_percent': (down_votes / total_direction_votes) * 100 if total_direction_votes > 0 else 0,
+                'hold_votes_percent': (hold_votes / total_direction_votes) * 100 if total_direction_votes > 0 else 0,
+                'detailed_analysis': detailed_analysis,
+                'reasoning': ' | '.join(reasoning_parts)
+            }
+            
+        except Exception as e:
+            # Return None if there's any error in the combination process
+            st.warning(f"⚠️ Error in combined prediction calculation: {str(e)}")
+            return None
     
     def render_combined_prediction_card(self, combined_pred, current_price):
         """Render the main combined prediction card"""
@@ -835,251 +866,7 @@ class StockTrendAI:
     def render_stock_chart(self, stock_data, symbol):
         """Render interactive stock chart with technical indicators"""
         st.markdown("### 📊 Interactive Stock Chart with Technical Analysis")
-        
-        try:
-            # Ensure we have valid data
-            if stock_data is None or stock_data.empty:
-                st.error("❌ No data available to display chart")
-                return
-                
-            # Clean data and handle NaN values
-            chart_data = stock_data.copy()
-            
-            # Ensure required OHLCV columns exist
-            required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
-            missing_cols = [col for col in required_cols if col not in chart_data.columns]
-            if missing_cols:
-                st.error(f"❌ Missing required columns: {missing_cols}")
-                return
-            
-            # Fill NaN values in OHLCV data
-            for col in required_cols:
-                if chart_data[col].isna().any():
-                    chart_data[col] = chart_data[col].ffill().bfill()
-            
-            # Create subplots
-            fig = make_subplots(
-                rows=4, cols=1,
-                shared_xaxes=True,
-                vertical_spacing=0.05,
-                subplot_titles=('Price & Moving Averages', 'Volume', 'RSI', 'MACD'),
-                row_heights=[0.5, 0.15, 0.175, 0.175]
-            )
-        
-            # Candlestick chart
-            fig.add_trace(
-                go.Candlestick(
-                    x=chart_data.index,
-                    open=chart_data['Open'],
-                    high=chart_data['High'],
-                    low=chart_data['Low'],
-                    close=chart_data['Close'],
-                    name="Price",
-                    increasing_line_color='#00ff88',
-                    decreasing_line_color='#ff0044'
-                ),
-                row=1, col=1
-            )
-        
-            # Moving averages with NaN handling
-            if 'SMA_20' in chart_data.columns and not chart_data['SMA_20'].isna().all():
-                sma_20_clean = chart_data['SMA_20'].dropna()
-                if len(sma_20_clean) > 0:
-                    fig.add_trace(
-                        go.Scatter(
-                            x=sma_20_clean.index,
-                            y=sma_20_clean.values,
-                            name="SMA 20",
-                            line=dict(color='#ffaa00', width=2),
-                            connectgaps=False
-                        ),
-                        row=1, col=1
-                    )
-            
-            if 'SMA_50' in chart_data.columns and not chart_data['SMA_50'].isna().all():
-                sma_50_clean = chart_data['SMA_50'].dropna()
-                if len(sma_50_clean) > 0:
-                    fig.add_trace(
-                        go.Scatter(
-                            x=sma_50_clean.index,
-                            y=sma_50_clean.values,
-                            name="SMA 50",
-                            line=dict(color='#00aaff', width=2),
-                            connectgaps=False
-                        ),
-                        row=1, col=1
-                    )
-        
-            # Bollinger Bands with NaN handling
-            if ('BB_Upper' in chart_data.columns and 'BB_Lower' in chart_data.columns and
-                not chart_data['BB_Upper'].isna().all() and not chart_data['BB_Lower'].isna().all()):
-                
-                bb_data = chart_data[['BB_Upper', 'BB_Lower']].dropna()
-                if len(bb_data) > 0:
-                    fig.add_trace(
-                        go.Scatter(
-                            x=bb_data.index,
-                            y=bb_data['BB_Upper'],
-                            name="BB Upper",
-                            line=dict(color='rgba(255,255,255,0.3)', width=1),
-                            fill=None,
-                            connectgaps=False
-                        ),
-                        row=1, col=1
-                    )
-                    
-                    fig.add_trace(
-                        go.Scatter(
-                            x=bb_data.index,
-                            y=bb_data['BB_Lower'],
-                            name="BB Lower",
-                            line=dict(color='rgba(255,255,255,0.3)', width=1),
-                            fill='tonexty',
-                            fillcolor='rgba(255,255,255,0.1)',
-                            connectgaps=False
-                        ),
-                        row=1, col=1
-                    )
-        
-            # Volume
-            fig.add_trace(
-                go.Bar(
-                    x=chart_data.index,
-                    y=chart_data['Volume'],
-                    name="Volume",
-                    marker_color='rgba(0,255,136,0.6)'
-                ),
-                row=2, col=1
-            )
-        
-            # RSI with NaN handling
-            if 'RSI' in chart_data.columns and not chart_data['RSI'].isna().all():
-                rsi_clean = chart_data['RSI'].dropna()
-                if len(rsi_clean) > 0:
-                    fig.add_trace(
-                        go.Scatter(
-                            x=rsi_clean.index,
-                            y=rsi_clean.values,
-                            name="RSI",
-                            line=dict(color='#ff6600', width=2),
-                            connectgaps=False
-                        ),
-                        row=3, col=1
-                    )
-                    
-                    # RSI levels
-                    fig.add_hline(y=70, line_dash="dash", line_color="red", row=3, col=1)
-                    fig.add_hline(y=30, line_dash="dash", line_color="green", row=3, col=1)
-        
-            # MACD with NaN handling
-            if 'MACD' in chart_data.columns and not chart_data['MACD'].isna().all():
-                macd_clean = chart_data['MACD'].dropna()
-                if len(macd_clean) > 0:
-                    fig.add_trace(
-                        go.Scatter(
-                            x=macd_clean.index,
-                            y=macd_clean.values,
-                            name="MACD",
-                            line=dict(color='#00ff88', width=2),
-                            connectgaps=False
-                        ),
-                        row=4, col=1
-                    )
-                
-                if 'MACD_Signal' in chart_data.columns and not chart_data['MACD_Signal'].isna().all():
-                    signal_clean = chart_data['MACD_Signal'].dropna()
-                    if len(signal_clean) > 0:
-                        fig.add_trace(
-                            go.Scatter(
-                                x=signal_clean.index,
-                                y=signal_clean.values,
-                                name="MACD Signal",
-                                line=dict(color='#ff4400', width=2),
-                                connectgaps=False
-                            ),
-                            row=4, col=1
-                        )
-                
-                if 'MACD_Histogram' in chart_data.columns and not chart_data['MACD_Histogram'].isna().all():
-                    hist_clean = chart_data['MACD_Histogram'].dropna()
-                    if len(hist_clean) > 0:
-                        fig.add_trace(
-                            go.Bar(
-                                x=hist_clean.index,
-                                y=hist_clean.values,
-                                name="MACD Histogram",
-                                marker_color='rgba(255,255,255,0.3)'
-                            ),
-                            row=4, col=1
-                        )
-            
-            # Update layout with comprehensive styling
-            fig.update_layout(
-            title=dict(
-                text=f"{symbol} - Technical Analysis Dashboard",
-                font=dict(color='white', size=20)
-            ),
-            template="plotly_dark",
-            height=800,
-            showlegend=True,
-            xaxis_rangeslider_visible=False,
-            paper_bgcolor='black',
-            plot_bgcolor='black',
-            font=dict(color='white', family='Arial', size=12),
-            legend=dict(
-                font=dict(color='white'),
-                bgcolor='rgba(0,0,0,0.5)',
-                bordercolor='rgba(255,255,255,0.2)',
-                borderwidth=1
-            )
-        )
-        
-            # Update all axes to have white text
-            fig.update_xaxes(
-                gridcolor='rgba(255,255,255,0.1)',
-                linecolor='rgba(255,255,255,0.2)',
-                tickfont=dict(color='white'),
-                titlefont=dict(color='white')
-            )
-            fig.update_yaxes(
-                gridcolor='rgba(255,255,255,0.1)',
-                linecolor='rgba(255,255,255,0.2)',
-                tickfont=dict(color='white'),
-                titlefont=dict(color='white')
-            )
-            
-            # Display the chart
-            st.plotly_chart(fig, use_container_width=True)
-            
-        except Exception as e:
-            st.error(f"❌ Error rendering chart: {str(e)}")
-            st.info("💡 This might be due to insufficient data for technical indicators. Try selecting a longer time period.")
-            
-            # Show a simple price chart as fallback
-            try:
-                if stock_data is not None and not stock_data.empty and 'Close' in stock_data.columns:
-                    st.markdown("### 📈 Fallback: Simple Price Chart")
-                    fallback_fig = go.Figure()
-                    fallback_fig.add_trace(
-                        go.Scatter(
-                            x=stock_data.index,
-                            y=stock_data['Close'],
-                            mode='lines',
-                            name='Close Price',
-                            line=dict(color='#00ff88', width=2)
-                        )
-                    )
-                    fallback_fig.update_layout(
-                        title=f"{symbol} - Price Chart",
-                        template="plotly_dark",
-                        height=400,
-                        paper_bgcolor='black',
-                        plot_bgcolor='black',
-                        font=dict(color='white')
-                    )
-                    st.plotly_chart(fallback_fig, use_container_width=True)
-            except Exception as fallback_error:
-                st.error(f"❌ Unable to display any chart: {str(fallback_error)}")
+        self.render_interactive_chart(stock_data, symbol)
     
     def render_market_summary(self, stock_data, symbol):
         """Render market summary with key metrics"""
@@ -2126,6 +1913,299 @@ class StockTrendAI:
         with col2:
             st.metric("LSTM Accuracy", "68.3%")
             st.metric("Success Rate", "69.8%")
+
+    def render_interactive_chart(self, stock_data, symbol):
+        """Create and display interactive chart with technical analysis"""
+        try:
+            if stock_data is None or stock_data.empty:
+                st.error("❌ No data available for chart rendering")
+                return
+            
+            # Check if we have minimum required data
+            if len(stock_data) < 20:
+                st.warning("⚠️ Insufficient data for technical analysis. Minimum 20 data points required.")
+                # Show simple price chart
+                fig = go.Figure()
+                fig.add_trace(
+                    go.Scatter(
+                        x=stock_data.index,
+                        y=stock_data['Close'],
+                        mode='lines',
+                        name='Close Price',
+                        line=dict(color='#00ff88', width=2)
+                    )
+                )
+                fig.update_layout(
+                    title=f"{symbol} - Simple Price Chart",
+                    template="plotly_dark",
+                    height=400,
+                    paper_bgcolor='black',
+                    plot_bgcolor='black',
+                    font=dict(color='white')
+                )
+                st.plotly_chart(fig, use_container_width=True)
+                return
+            
+            # Calculate technical indicators with error handling
+            try:
+                chart_data = self.tech_indicators.add_all_indicators(stock_data.copy())
+            except Exception as tech_error:
+                st.warning(f"⚠️ Technical indicators calculation issue: {str(tech_error)}")
+                # Fallback to basic chart with just price data
+                chart_data = stock_data.copy()
+            
+            # Ensure we have the required OHLCV columns
+            required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+            missing_cols = [col for col in required_cols if col not in chart_data.columns]
+            if missing_cols:
+                st.error(f"❌ Missing required columns: {missing_cols}")
+                return
+            
+            # Fill NaN values in OHLCV data
+            for col in required_cols:
+                if chart_data[col].isna().any():
+                    chart_data[col] = chart_data[col].ffill().bfill()
+            
+            # Create subplots - adjust based on available indicators
+            has_technical_indicators = any(col in chart_data.columns for col in ['RSI', 'MACD', 'SMA_20'])
+            
+            if has_technical_indicators:
+                fig = make_subplots(
+                    rows=4, cols=1,
+                    shared_xaxes=True,
+                    vertical_spacing=0.05,
+                    subplot_titles=('Price & Moving Averages', 'Volume', 'RSI', 'MACD'),
+                    row_heights=[0.5, 0.15, 0.175, 0.175]
+                )
+            else:
+                fig = make_subplots(
+                    rows=2, cols=1,
+                    shared_xaxes=True,
+                    vertical_spacing=0.1,
+                    subplot_titles=('Price', 'Volume'),
+                    row_heights=[0.7, 0.3]
+                )
+        
+            # Candlestick chart
+            fig.add_trace(
+                go.Candlestick(
+                    x=chart_data.index,
+                    open=chart_data['Open'],
+                    high=chart_data['High'],
+                    low=chart_data['Low'],
+                    close=chart_data['Close'],
+                    name="Price",
+                    increasing_line_color='#00ff88',
+                    decreasing_line_color='#ff0044'
+                ),
+                row=1, col=1
+            )
+        
+            # Moving averages with NaN handling
+            if 'SMA_20' in chart_data.columns and not chart_data['SMA_20'].isna().all():
+                sma_20_clean = chart_data['SMA_20'].dropna()
+                if len(sma_20_clean) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=sma_20_clean.index,
+                            y=sma_20_clean.values,
+                            name="SMA 20",
+                            line=dict(color='#ffaa00', width=2),
+                            connectgaps=False
+                        ),
+                        row=1, col=1
+                    )
+            
+            if 'SMA_50' in chart_data.columns and not chart_data['SMA_50'].isna().all():
+                sma_50_clean = chart_data['SMA_50'].dropna()
+                if len(sma_50_clean) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=sma_50_clean.index,
+                            y=sma_50_clean.values,
+                            name="SMA 50",
+                            line=dict(color='#00aaff', width=2),
+                            connectgaps=False
+                        ),
+                        row=1, col=1
+                    )
+        
+            # Bollinger Bands with NaN handling
+            if ('BB_Upper' in chart_data.columns and 'BB_Lower' in chart_data.columns and
+                not chart_data['BB_Upper'].isna().all() and not chart_data['BB_Lower'].isna().all()):
+                
+                bb_data = chart_data[['BB_Upper', 'BB_Lower']].dropna()
+                if len(bb_data) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=bb_data.index,
+                            y=bb_data['BB_Upper'],
+                            name="BB Upper",
+                            line=dict(color='rgba(255,255,255,0.3)', width=1),
+                            fill=None,
+                            connectgaps=False
+                        ),
+                        row=1, col=1
+                    )
+                    
+                    fig.add_trace(
+                        go.Scatter(
+                            x=bb_data.index,
+                            y=bb_data['BB_Lower'],
+                            name="BB Lower",
+                            line=dict(color='rgba(255,255,255,0.3)', width=1),
+                            fill='tonexty',
+                            fillcolor='rgba(255,255,255,0.1)',
+                            connectgaps=False
+                        ),
+                        row=1, col=1
+                    )
+        
+            # Volume
+            volume_row = 2 if not has_technical_indicators else 2
+            fig.add_trace(
+                go.Bar(
+                    x=chart_data.index,
+                    y=chart_data['Volume'],
+                    name="Volume",
+                    marker_color='rgba(0,255,136,0.6)'
+                ),
+                row=volume_row, col=1
+            )
+        
+            # Add technical indicators only if available and we have space
+            if has_technical_indicators:
+                # RSI with proper NaN handling
+                if 'RSI' in chart_data.columns and not chart_data['RSI'].isna().all():
+                    rsi_clean = chart_data['RSI'].dropna()
+                    if len(rsi_clean) > 0:
+                        fig.add_trace(
+                            go.Scatter(
+                                x=rsi_clean.index,
+                                y=rsi_clean.values,
+                                name="RSI",
+                                line=dict(color='#ff6600', width=2),
+                                connectgaps=False
+                            ),
+                            row=3, col=1
+                        )
+                        
+                        # Add RSI levels
+                        fig.add_hline(y=70, line_dash="dash", line_color="red", row=3, col=1)
+                        fig.add_hline(y=30, line_dash="dash", line_color="green", row=3, col=1)
+                        fig.add_hline(y=50, line_dash="dot", line_color="gray", row=3, col=1)
+                
+                # MACD with proper NaN handling
+                if 'MACD' in chart_data.columns and not chart_data['MACD'].isna().all():
+                    macd_clean = chart_data['MACD'].dropna()
+                    if len(macd_clean) > 0:
+                        fig.add_trace(
+                            go.Scatter(
+                                x=macd_clean.index,
+                                y=macd_clean.values,
+                                name="MACD",
+                                line=dict(color='#00aaff', width=2),
+                                connectgaps=False
+                            ),
+                            row=4, col=1
+                        )
+                
+                if 'MACD_Signal' in chart_data.columns and not chart_data['MACD_Signal'].isna().all():
+                    signal_clean = chart_data['MACD_Signal'].dropna()
+                    if len(signal_clean) > 0:
+                        fig.add_trace(
+                            go.Scatter(
+                                x=signal_clean.index,
+                                y=signal_clean.values,
+                                name="MACD Signal",
+                                line=dict(color='#ff6600', width=2),
+                                connectgaps=False
+                            ),
+                            row=4, col=1
+                        )
+                
+                if 'MACD_Histogram' in chart_data.columns and not chart_data['MACD_Histogram'].isna().all():
+                    hist_clean = chart_data['MACD_Histogram'].dropna()
+                    if len(hist_clean) > 0:
+                        fig.add_trace(
+                            go.Bar(
+                                x=hist_clean.index,
+                                y=hist_clean.values,
+                                name="MACD Histogram",
+                                marker_color='rgba(255,255,255,0.3)'
+                            ),
+                            row=4, col=1
+                        )
+            
+            # Update layout with comprehensive styling
+            height = 800 if has_technical_indicators else 500
+            fig.update_layout(
+                title=dict(
+                    text=f"{symbol} - Technical Analysis Dashboard",
+                    font=dict(color='white', size=20)
+                ),
+                template="plotly_dark",
+                height=height,
+                showlegend=True,
+                xaxis_rangeslider_visible=False,
+                paper_bgcolor='black',
+                plot_bgcolor='black',
+                font=dict(color='white', family='Arial', size=12),
+                legend=dict(
+                    font=dict(color='white'),
+                    bgcolor='rgba(0,0,0,0.5)',
+                    bordercolor='rgba(255,255,255,0.2)',
+                    borderwidth=1
+                )
+            )
+        
+            # Update all axes to have white text
+            fig.update_xaxes(
+                gridcolor='rgba(255,255,255,0.1)',
+                linecolor='rgba(255,255,255,0.2)',
+                tickfont=dict(color='white'),
+                titlefont=dict(color='white')
+            )
+            fig.update_yaxes(
+                gridcolor='rgba(255,255,255,0.1)',
+                linecolor='rgba(255,255,255,0.2)',
+                tickfont=dict(color='white'),
+                titlefont=dict(color='white')
+            )
+            
+            # Display the chart
+            st.plotly_chart(fig, use_container_width=True)
+            
+        except Exception as e:
+            st.error(f"❌ Error rendering chart: {str(e)}")
+            st.info("💡 This might be due to insufficient data for technical indicators. Try selecting a longer time period.")
+            
+            # Show a simple price chart as fallback
+            try:
+                if stock_data is not None and not stock_data.empty and 'Close' in stock_data.columns:
+                    st.markdown("### 📈 Fallback: Simple Price Chart")
+                    fallback_fig = go.Figure()
+                    fallback_fig.add_trace(
+                        go.Scatter(
+                            x=stock_data.index,
+                            y=stock_data['Close'],
+                            mode='lines',
+                            name='Close Price',
+                            line=dict(color='#00ff88', width=2)
+                        )
+                    )
+                    fallback_fig.update_layout(
+                        title=f"{symbol} - Price Chart",
+                        template="plotly_dark",
+                        height=400,
+                        paper_bgcolor='black',
+                        plot_bgcolor='black',
+                        font=dict(color='white')
+                    )
+                    st.plotly_chart(fallback_fig, use_container_width=True)
+            except Exception as fallback_error:
+                st.error(f"❌ Could not render fallback chart: {str(fallback_error)}")
+                st.info("Please try refreshing the page or selecting a different stock.")
 
 # Run the application
 if __name__ == "__main__":

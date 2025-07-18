@@ -1321,10 +1321,6 @@ def get_custom_css():
     }
     
     /* Hide Streamlit sidebar collapse/expand hamburger button */
-    [aria-label="Collapse sidebar"],
-    [data-testid="collapsedControl"] {
-        display: none !important;
-    }
     
     </style>
     """

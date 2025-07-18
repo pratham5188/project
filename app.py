@@ -368,6 +368,7 @@ class StockTrendAI:
         
         return selected_symbol, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh
     
+    @st.cache_data(show_spinner=False)
     def load_and_process_data(self, symbol, period):
         """Load and process stock data with caching"""
         current_time = time.time()

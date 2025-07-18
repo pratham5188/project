@@ -67,6 +67,7 @@ class NewsSentimentAnalyzer:
         mock_news = [
             {
                 'headline': f'{company_name} Reports Strong Q4 Earnings, Beats Estimates',
+                'title': f'{company_name} Reports Strong Q4 Earnings, Beats Estimates',
                 'summary': f'{company_name} announced strong quarterly results with revenue growth of 15% year-over-year, exceeding analyst expectations.',
                 'published_date': (datetime.now() - timedelta(hours=2)).isoformat(),
                 'source': 'Business Standard',
@@ -75,6 +76,7 @@ class NewsSentimentAnalyzer:
             },
             {
                 'headline': f'Analysts Upgrade {company_name} Stock to Buy Rating',
+                'title': f'Analysts Upgrade {company_name} Stock to Buy Rating',
                 'summary': f'Leading investment firm upgrades {company_name} citing strong fundamentals and growth prospects in the sector.',
                 'published_date': (datetime.now() - timedelta(hours=6)).isoformat(),
                 'source': 'Economic Times',
@@ -83,6 +85,7 @@ class NewsSentimentAnalyzer:
             },
             {
                 'headline': f'{company_name} Announces Strategic Partnership for Digital Transformation',
+                'title': f'{company_name} Announces Strategic Partnership for Digital Transformation',
                 'summary': f'{company_name} partners with technology leader to accelerate digital initiatives and improve operational efficiency.',
                 'published_date': (datetime.now() - timedelta(hours=12)).isoformat(),
                 'source': 'Financial Express',
@@ -91,6 +94,7 @@ class NewsSentimentAnalyzer:
             },
             {
                 'headline': f'Market Volatility Affects {company_name} Stock Price',
+                'title': f'Market Volatility Affects {company_name} Stock Price',
                 'summary': f'{company_name} shares fluctuate amid broader market uncertainty and sector-specific challenges.',
                 'published_date': (datetime.now() - timedelta(days=1)).isoformat(),
                 'source': 'Mint',
@@ -99,6 +103,7 @@ class NewsSentimentAnalyzer:
             },
             {
                 'headline': f'{company_name} Expands Operations in Emerging Markets',
+                'title': f'{company_name} Expands Operations in Emerging Markets',
                 'summary': f'{company_name} announces expansion plans in key emerging markets to drive future growth and market share.',
                 'published_date': (datetime.now() - timedelta(days=2)).isoformat(),
                 'source': 'Bloomberg',

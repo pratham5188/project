@@ -94,27 +94,7 @@ class StockTrendAI:
         # Initialize control panel state
         if 'show_control_panel' not in st.session_state:
             st.session_state.show_control_panel = False
-        
-        # Enhanced 3-dot menu header with improved styling and proper arrow
-        arrow_icon = "🔽" if st.session_state.show_control_panel else "▶️"
-        st.sidebar.markdown(f"""
-        <div style="
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            border: 1px solid #00ff88;
-            box-shadow: 0 0 15px rgba(0,255,136,0.3);
-        ">
-            <h2 style="color: #00ff88; margin: 0; font-size: 1.2rem;">🎯 Control Panel</h2>
-            <div style="color: #00ff88; font-size: 1.5rem; cursor: pointer;">{arrow_icon}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Enhanced toggle button with improved visibility
+        # Always show the main toggle button at the top
         button_text = "🔽 Hide Settings" if st.session_state.show_control_panel else "▶️ Show Settings"
         button_style = """
         <style>
@@ -136,10 +116,27 @@ class StockTrendAI:
         </style>
         """
         st.sidebar.markdown(button_style, unsafe_allow_html=True)
-        
         if st.sidebar.button(button_text, type="primary", use_container_width=True):
             st.session_state.show_control_panel = not st.session_state.show_control_panel
             st.rerun()
+        # Enhanced 3-dot menu header with improved styling and proper arrow
+        arrow_icon = "🔽" if st.session_state.show_control_panel else "▶️"
+        st.sidebar.markdown(f"""
+        <div style="
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #00ff88;
+            box-shadow: 0 0 15px rgba(0,255,136,0.3);
+        ">
+            <h2 style="color: #00ff88; margin: 0; font-size: 1.2rem;">🎯 Control Panel</h2>
+            <div style="color: #00ff88; font-size: 1.5rem; cursor: pointer;">{arrow_icon}</div>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Show minimized view if collapsed
         if not st.session_state.show_control_panel:
@@ -831,6 +828,20 @@ class StockTrendAI:
             st.markdown("---")
             st.markdown("### 📊 Individual Model Predictions")
         
+        # Add custom CSS for prediction card alignment
+        st.markdown("""
+        <style>
+        .prediction-card {
+            margin-left: auto !important;
+            margin-right: auto !important;
+            display: block !important;
+        }
+        .element-container:has(.prediction-card) {
+            display: flex !important;
+            justify-content: center !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
         # Display individual model predictions in horizontal pairs (2 per row)
         pred_items = list(predictions.items())
         for i in range(0, len(pred_items), 2):

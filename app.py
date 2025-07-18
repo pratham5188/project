@@ -810,7 +810,9 @@ class StockTrendAI:
             xaxis_title="Model",
             yaxis_title="Confidence (%)",
             template="plotly_dark",
-            height=350
+            height=350,
+            plot_bgcolor='black',
+            paper_bgcolor='black'
         )
         st.plotly_chart(fig, use_container_width=True)
     
@@ -2300,6 +2302,95 @@ class StockTrendAI:
             except Exception as fallback_error:
                 st.error(f"❌ Could not render fallback chart: {str(fallback_error)}")
                 st.info("Please try refreshing the page or selecting a different stock.")
+
+    def render_advanced_tools_tab(self):
+        st.markdown("## ⚙️ Advanced Tools")
+        tool_tab1, tool_tab2, tool_tab3 = st.tabs(["🤖 AI Models Info", "📊 Analysis Tools", "🔧 Utilities"])
+        with tool_tab1:
+            st.markdown("## 🤖 AI Models Information")
+            self.model_info.render_model_comparison()
+            self.model_info.render_model_recommendations()
+            self.model_info.render_model_details()
+            col1, col2 = st.columns(2)
+            with col1:
+                self.model_info.render_ensemble_explanation()
+            with col2:
+                self.model_info.render_transformer_explanation()
+        with tool_tab2:
+            tool_col1, tool_col2 = st.columns(2)
+            with tool_col1:
+                st.markdown("### 🔄 Data Export")
+                if st.button("📥 Export Current Data"):
+                    stock_data = self.load_and_process_data(st.session_state.selected_stock, '1y')
+                    if stock_data is not None:
+                        csv = stock_data.to_csv()
+                        st.download_button(
+                            label="Download CSV",
+                            data=csv,
+                            file_name=f"{st.session_state.selected_stock}_data.csv",
+                            mime="text/csv"
+                        )
+                st.markdown("### 📊 Market Comparison")
+                compare_stocks = st.multiselect(
+                    "Select stocks to compare",
+                    options=list(INDIAN_STOCKS.keys()),
+                    default=[st.session_state.selected_stock],
+                    format_func=lambda x: f"{INDIAN_STOCKS[x]} ({x})"
+                )
+                if len(compare_stocks) > 1:
+                    self.render_stock_comparison(compare_stocks)
+            with tool_col2:
+                st.markdown("### 🎯 Backtesting")
+                if st.button("🔍 Run Backtest"):
+                    self.run_simple_backtest()
+                st.markdown("### 📈 Model Performance")
+                self.render_model_performance_metrics()
+        with tool_tab3:
+            st.markdown("## 🔧 Utilities")
+            util_col1, util_col2 = st.columns(2)
+            with util_col1:
+                st.markdown("### ⚙️ App Settings")
+                st.info("🎨 Color theme: Dark Neon (with white text)")
+                st.info("🤖 AI Models: 5 Advanced Models Available")
+                st.info("📊 Data Source: Yahoo Finance (Indian Markets)")
+                st.markdown("### 🔋 Model Status")
+                model_status = {
+                    "XGBoost": "✅ Ready",
+                    "LSTM": "✅ Ready",
+                    "Prophet": "✅ Ready",
+                    "Ensemble": "✅ Ready",
+                    "Transformer": "✅ Ready"
+                }
+                for model, status in model_status.items():
+                    st.markdown(f"**{model}:** {status}")
+            with util_col2:
+                st.markdown("### 📋 Quick Actions")
+                if st.button("🔄 Reset All Models"):
+                    st.session_state.predictions = None
+                    st.success("All models reset successfully!")
+                if st.button("🧹 Clear Cache"):
+                    st.cache_data.clear()
+                    st.success("Cache cleared successfully!")
+                st.markdown("### 📝 App Information")
+                st.markdown("""
+                **Version:** 2.0 - Advanced AI Edition
+                **Models:** 5 State-of-the-art AI Models
+                **Features:** 
+                - Multi-model predictions
+                - Real-time data
+                - Advanced analytics
+                - Portfolio tracking
+                - News sentiment analysis
+                """)
+                st.markdown("### 🎯 Performance Tips")
+                st.markdown("""
+                💡 **For Best Results:**
+                - Use multiple models for consensus
+                - Check confidence levels
+                - Consider market conditions
+                - Combine with technical analysis
+                - Monitor news sentiment
+                """)
 
 # Run the application
 if __name__ == "__main__":

@@ -383,11 +383,243 @@ class StockTrendAI:
         
         return st.session_state.predictions
     
+    def generate_combined_prediction(self, predictions, current_price):
+        """Generate a single combined prediction from all AI models"""
+        if not predictions:
+            return None
+        
+        # Initialize aggregation variables
+        total_confidence = 0
+        total_weighted_price = 0
+        total_weights = 0
+        up_votes = 0
+        down_votes = 0
+        hold_votes = 0
+        
+        # Model weights based on typical performance
+        model_weights = {
+            'XGBoost': 1.2,      # Good with structured data
+            'LSTM': 1.1,         # Good with sequences
+            'Prophet': 1.0,      # Good with trends
+            'Ensemble': 1.3,     # Multi-model approach
+            'Transformer': 1.1,  # Good with patterns
+            'GRU': 1.0,         # Efficient RNN
+            'Stacking': 1.4      # Meta-learning approach
+        }
+        
+        detailed_analysis = []
+        
+        for model_name, pred_data in predictions.items():
+            confidence = pred_data.get('confidence', 0)
+            direction = pred_data.get('direction', 'HOLD')
+            predicted_price = pred_data.get('predicted_price', current_price)
+            
+            # Get model weight
+            weight = model_weights.get(model_name, 1.0)
+            confidence_weight = (confidence / 100.0) * weight
+            
+            # Aggregate confidence and price
+            total_confidence += confidence * weight
+            total_weighted_price += predicted_price * confidence_weight
+            total_weights += weight
+            
+            # Count direction votes
+            if direction == 'UP':
+                up_votes += confidence_weight
+            elif direction == 'DOWN':
+                down_votes += confidence_weight
+            else:
+                hold_votes += confidence_weight
+            
+            # Store detailed analysis
+            detailed_analysis.append({
+                'model': model_name,
+                'direction': direction,
+                'confidence': confidence,
+                'predicted_price': predicted_price,
+                'weight': weight
+            })
+        
+        # Calculate combined metrics
+        if total_weights > 0:
+            avg_confidence = total_confidence / total_weights
+            avg_predicted_price = total_weighted_price / (total_confidence / 100.0) if total_confidence > 0 else current_price
+        else:
+            avg_confidence = 0
+            avg_predicted_price = current_price
+        
+        # Determine combined direction
+        total_directional_votes = up_votes + down_votes + hold_votes
+        if total_directional_votes > 0:
+            up_percentage = (up_votes / total_directional_votes) * 100
+            down_percentage = (down_votes / total_directional_votes) * 100
+            hold_percentage = (hold_votes / total_directional_votes) * 100
+            
+            if up_percentage > down_percentage and up_percentage > hold_percentage:
+                combined_direction = 'UP'
+            elif down_percentage > up_percentage and down_percentage > hold_percentage:
+                combined_direction = 'DOWN'
+            else:
+                combined_direction = 'HOLD'
+        else:
+            combined_direction = 'HOLD'
+        
+        # Calculate consensus strength
+        max_vote_percentage = max(up_percentage, down_percentage, hold_percentage) if total_directional_votes > 0 else 0
+        consensus_strength = max_vote_percentage
+        
+        # Adjust confidence based on consensus
+        final_confidence = min(95, avg_confidence * (consensus_strength / 100.0) * 1.2)
+        
+        # Generate reasoning
+        dominant_models = [analysis for analysis in detailed_analysis 
+                          if analysis['direction'] == combined_direction]
+        
+        reasoning_parts = []
+        reasoning_parts.append(f"Combined analysis of {len(predictions)} AI models")
+        reasoning_parts.append(f"Consensus: {consensus_strength:.1f}% agreement on {combined_direction}")
+        
+        if dominant_models:
+            top_models = sorted(dominant_models, key=lambda x: x['confidence'], reverse=True)[:3]
+            model_names = [model['model'] for model in top_models]
+            reasoning_parts.append(f"Leading models: {', '.join(model_names)}")
+        
+        # Price change analysis
+        price_change = avg_predicted_price - current_price
+        price_change_percent = (price_change / current_price) * 100
+        
+        return {
+            'direction': combined_direction,
+            'confidence': final_confidence,
+            'predicted_price': avg_predicted_price,
+            'price_change': price_change,
+            'price_change_percent': price_change_percent,
+            'consensus_strength': consensus_strength,
+            'model_count': len(predictions),
+            'up_votes_percent': up_percentage if total_directional_votes > 0 else 0,
+            'down_votes_percent': down_percentage if total_directional_votes > 0 else 0,
+            'hold_votes_percent': hold_percentage if total_directional_votes > 0 else 0,
+            'reasoning': ' | '.join(reasoning_parts),
+            'detailed_analysis': detailed_analysis,
+            'model_type': 'Meta-AI Ensemble'
+        }
+    
+    def render_combined_prediction_card(self, combined_pred, current_price):
+        """Render the main combined prediction card"""
+        if not combined_pred:
+            return
+        
+        direction = combined_pred['direction']
+        confidence = combined_pred['confidence']
+        predicted_price = combined_pred['predicted_price']
+        consensus_strength = combined_pred['consensus_strength']
+        model_count = combined_pred['model_count']
+        
+        # Determine colors and styling
+        if direction == 'UP':
+            color_class = "bullish"
+            arrow = "⬆️"
+            border_color = "#00ff88"
+        elif direction == 'DOWN':
+            color_class = "bearish"
+            arrow = "⬇️"
+            border_color = "#ff0044"
+        else:
+            color_class = "neutral"
+            arrow = "➡️"
+            border_color = "#ffaa00"
+        
+        # Generate confidence indicator
+        confidence_indicator = self.get_confidence_indicator(confidence)
+        confidence_color = self.get_confidence_color(confidence)
+        
+        # Calculate price change
+        price_change = predicted_price - current_price
+        change_percent = (price_change / current_price) * 100
+        
+        st.markdown("### 🚀 AI Meta-Ensemble Prediction")
+        
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(26,26,46,0.8));
+            border: 3px solid {border_color};
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 1rem 0;
+            text-align: center;
+            box-shadow: 0 0 30px {border_color}50;
+            backdrop-filter: blur(10px);
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div style="font-size: 1.2rem; color: {border_color}; font-weight: bold;">
+                    🤖 {model_count} AI Models Combined
+                </div>
+                <div style="font-size: 1.2rem; color: {confidence_color};">
+                    {confidence_indicator} {confidence:.1f}%
+                </div>
+            </div>
+            
+            <div style="font-size: 3rem; color: {border_color}; margin: 1rem 0; text-shadow: 0 0 20px {border_color};">
+                {arrow} {direction}
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Current Price</div>
+                    <div style="color: #ffffff; font-size: 1.3rem; font-weight: bold;">₹{current_price:.2f}</div>
+                </div>
+                
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid {border_color};">
+                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Predicted Price</div>
+                    <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">₹{predicted_price:.2f}</div>
+                </div>
+                
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Expected Change</div>
+                    <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">{price_change:+.2f} ({change_percent:+.2f}%)</div>
+                </div>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                <div style="color: #ffffff; font-size: 1rem; margin-bottom: 0.5rem;">📊 Consensus Analysis</div>
+                <div style="color: {confidence_color}; font-size: 0.9rem;">
+                    {consensus_strength:.1f}% model agreement | Combined confidence from {model_count} AI algorithms
+                </div>
+            </div>
+            
+            <div style="
+                width: 100%; 
+                height: 6px; 
+                background-color: rgba(255,255,255,0.1); 
+                border-radius: 3px; 
+                margin-top: 1rem;
+                overflow: hidden;
+            ">
+                <div style="
+                    height: 100%; 
+                    width: {confidence}%; 
+                    background: linear-gradient(90deg, {confidence_color}, {border_color}); 
+                    border-radius: 3px;
+                    box-shadow: 0 0 10px {confidence_color};
+                "></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
     def render_prediction_cards(self, predictions, current_price):
         """Render prediction cards with neon glow effects"""
         if not predictions:
             st.warning("⚠️ No predictions available. Please select at least one model.")
             return
+        
+        # Generate and display combined prediction first
+        combined_prediction = self.generate_combined_prediction(predictions, current_price)
+        if combined_prediction:
+            self.render_combined_prediction_card(combined_prediction, current_price)
+            
+            # Add some spacing
+            st.markdown("---")
+            st.markdown("### 📊 Individual Model Predictions")
         
         cols = st.columns(len(predictions))
         
@@ -1305,17 +1537,66 @@ class StockTrendAI:
         interpretation = self.get_confidence_interpretation(avg_confidence)
         st.info(interpretation)
         
+        # Combined prediction analysis
+        current_price = st.session_state.stock_data['Close'].iloc[-1] if st.session_state.stock_data is not None else 100
+        combined_prediction = self.generate_combined_prediction(predictions, current_price)
+        
+        if combined_prediction:
+            st.markdown("#### 🤖 Meta-AI Analysis")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.markdown(f"""
+                <div style="text-align: center; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                    <h4 style="color: #00ff88; margin: 0;">📊 Consensus</h4>
+                    <h2 style="color: #00ff88; margin: 0.5rem 0;">{combined_prediction['consensus_strength']:.1f}%</h2>
+                    <p style="color: white; margin: 0;">Model Agreement</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                up_votes = combined_prediction['up_votes_percent']
+                down_votes = combined_prediction['down_votes_percent']
+                hold_votes = combined_prediction['hold_votes_percent']
+                
+                st.markdown(f"""
+                <div style="text-align: center; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                    <h4 style="color: #ffaa00; margin: 0;">🗳️ Vote Distribution</h4>
+                    <div style="margin: 0.5rem 0;">
+                        <div style="color: #00ff88;">⬆️ UP: {up_votes:.1f}%</div>
+                        <div style="color: #ff0044;">⬇️ DOWN: {down_votes:.1f}%</div>
+                        <div style="color: #ffaa00;">➡️ HOLD: {hold_votes:.1f}%</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col3:
+                price_change_percent = combined_prediction['price_change_percent']
+                change_color = "#00ff88" if price_change_percent > 0 else "#ff0044" if price_change_percent < 0 else "#ffaa00"
+                
+                st.markdown(f"""
+                <div style="text-align: center; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                    <h4 style="color: {change_color}; margin: 0;">💰 Price Target</h4>
+                    <h2 style="color: {change_color}; margin: 0.5rem 0;">{price_change_percent:+.2f}%</h2>
+                    <p style="color: white; margin: 0;">Expected Change</p>
+                </div>
+                """, unsafe_allow_html=True)
+        
         # Individual model confidence breakdown
         if len(predictions) > 1:
-            st.markdown("#### 📊 Model Confidence Breakdown")
+            st.markdown("#### 📊 Individual Model Analysis")
             for model_name, pred_data in predictions.items():
                 conf = pred_data.get('confidence', 0)
+                direction = pred_data.get('direction', 'HOLD')
                 indicator = self.get_confidence_indicator(conf)
                 color = self.get_confidence_color(conf)
                 
+                # Direction arrow
+                arrow = "⬆️" if direction == 'UP' else "⬇️" if direction == 'DOWN' else "➡️"
+                
                 st.markdown(f"""
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 5px; margin: 0.2rem 0; border-left: 3px solid {color};">
-                    <span style="color: white;">{model_name}</span>
+                    <span style="color: white;">{arrow} {model_name}</span>
                     <span style="color: {color};">{indicator} {conf:.1f}%</span>
                 </div>
                 """, unsafe_allow_html=True)

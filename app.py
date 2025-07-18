@@ -50,6 +50,22 @@ try:
         padding-left: 32px;
         padding-right: 32px;
     }
+    .stTabs [data-baseweb="tab-list"] {
+        justify-content: center !important;
+        gap: 32px !important;
+        width: 100%;
+        display: flex !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        flex: 1 1 0;
+        min-width: 180px;
+        max-width: 220px;
+        text-align: center;
+        margin: 0 8px !important;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 8px 8px 0 0;
+    }
     .prediction-card, .metric-card, .stPlotlyChart, .element-container:has(.prediction-card) {
         margin-left: auto !important;
         margin-right: auto !important;

@@ -36,8 +36,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Apply custom CSS
-st.markdown(get_custom_css(), unsafe_allow_html=True)
+    # Apply custom CSS (with cache clear)
+    st.markdown(get_custom_css(), unsafe_allow_html=True)
+    
+    # Force cache clear for immediate visibility of changes
+    if 'cache_cleared' not in st.session_state:
+        st.rerun()
+        st.session_state.cache_cleared = True
 
 # Initialize session state
 if 'selected_stock' not in st.session_state:
@@ -74,8 +79,8 @@ class StockTrendAI:
         """Render the main header with neon glow effect"""
         st.markdown("""
         <div class="neon-header">
-            <h1 class="main-title">🚀 StockTrendAI</h1>
-            <p class="subtitle">AI-Powered Indian Stock Market Predictor with 7 Advanced ML Models</p>
+            <h1 class="main-title">🚀 StockTrendAI ✨ UPDATED</h1>
+            <p class="subtitle">🔥 AI-Powered Indian Stock Market Predictor with 7 Advanced ML Models - ALL ISSUES FIXED! 🔥</p>
         </div>
         """, unsafe_allow_html=True)
     

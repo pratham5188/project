@@ -31,16 +31,20 @@ def get_custom_css():
     
     .main-title {
         font-family: 'Orbitron', monospace;
-        font-size: 3.5rem;
+        font-size: 3.8rem;
         font-weight: 900;
-        background: linear-gradient(45deg, #00ff88, #00aaff, #ff00aa);
-        background-size: 400% 400%;
+        background: linear-gradient(45deg, #ff0000, #00ff88, #00aaff, #ff00aa, #ffff00);
+        background-size: 500% 500%;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        animation: gradient-shift 4s ease infinite;
-        text-shadow: 0 0 30px rgba(0,255,136,0.5);
+        animation: gradient-shift 2s ease infinite;
+        text-shadow: 0 0 40px rgba(255,0,0,0.8);
         margin: 0;
+        border: 4px solid #00ff88;
+        padding: 1rem;
+        border-radius: 20px;
+        background-color: rgba(0,0,0,0.95) !important;
     }
     
     .subtitle {

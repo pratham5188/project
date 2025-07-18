@@ -306,9 +306,9 @@ def get_custom_css():
     .portfolio-metric {
         text-align: center;
         padding: 1rem;
-        background: rgba(0,0,0,0.3);
+        background: rgba(0,0,0,0.8);
         border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(0,255,136,0.1);
     }
     
     .portfolio-metric.positive {
@@ -384,9 +384,9 @@ def get_custom_css():
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        background: rgba(0,0,0,0.3);
+        background: rgba(0,0,0,0.8);
         border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.1);
+        border: 1px solid rgba(0,255,136,0.1);
     }
     
     .status-indicator {
@@ -415,8 +415,8 @@ def get_custom_css():
     }
     
     .performance-item {
-        background: rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(0,0,0,0.8);
+        border: 1px solid rgba(0,255,136,0.1);
         border-radius: 8px;
         padding: 1rem;
         text-align: center;
@@ -603,10 +603,10 @@ def get_custom_css():
     .confidence-bar {
         width: 80%;
         height: 4px;
-        background-color: rgba(255,255,255,0.2);
+        background-color: rgba(0,0,0,0.8);
         border-radius: 2px;
         overflow: hidden;
-        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        box-shadow: 0 0 5px rgba(0,255,136,0.3);
     }
     
     .confidence-fill {

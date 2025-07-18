@@ -133,17 +133,18 @@ class StockTrendAI:
         
         # Show minimized view if collapsed
         if not st.session_state.show_control_panel:
-            # Minimized view - show only essential info
+            # Minimized view - show only essential info with better visibility
             st.sidebar.markdown(f"""
             <div style="
-                background: rgba(0,0,0,0.3);
+                background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,136,255,0.1));
                 padding: 1rem;
                 border-radius: 10px;
-                border: 1px solid rgba(255,255,255,0.1);
+                border: 2px solid rgba(0,255,136,0.3);
                 text-align: center;
+                box-shadow: 0 0 15px rgba(0,255,136,0.2);
             ">
-                <p style="color: #00ff88; margin: 0;">{arrow_icon} Settings Hidden</p>
-                <p style="color: #ffffff; font-size: 0.8rem; margin: 0;">Click above to expand</p>
+                <p style="color: #00ff88; margin: 0; font-weight: bold;">{arrow_icon} Settings Hidden</p>
+                <p style="color: #ffffff; font-size: 0.8rem; margin: 0;">Click 'Show Settings' above to expand</p>
             </div>
             """, unsafe_allow_html=True)
             
@@ -740,7 +741,7 @@ class StockTrendAI:
             </div>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
-                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Current Price</div>
                     <div style="color: #ffffff; font-size: 1.3rem; font-weight: bold;">₹{current_price:.2f}</div>
                 </div>
@@ -750,7 +751,7 @@ class StockTrendAI:
                     <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">₹{predicted_price:.2f}</div>
                 </div>
                 
-                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Expected Change</div>
                     <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">{price_change:+.2f} ({change_percent:+.2f}%)</div>
                 </div>
@@ -766,7 +767,7 @@ class StockTrendAI:
             <div style="
                 width: 100%; 
                 height: 6px; 
-                background-color: rgba(255,255,255,0.1); 
+                background-color: rgba(0,0,0,0.8); 
                 border-radius: 3px; 
                 margin-top: 1rem;
                 overflow: hidden;
@@ -2432,15 +2433,21 @@ if __name__ == "__main__":
         
         with analytics_tab:
             try:
-                app.advanced_analytics.render_analytics_tab(stock_data, selected_symbol)
+                if stock_data is not None and not stock_data.empty:
+                    app.advanced_analytics.render_analytics_tab(stock_data, selected_symbol)
+                else:
+                    st.warning("⚠️ No stock data available for analytics. Please ensure data is loaded.")
+                    st.info("💡 Try refreshing the page or selecting a different stock.")
             except Exception as e:
                 st.error(f"❌ Error in analytics tab: {str(e)}")
+                st.info("Please try refreshing the page or check your internet connection.")
         
         with news_tab:
             try:
                 app.news_sentiment.render_news_tab(selected_symbol)
             except Exception as e:
                 st.error(f"❌ Error in news tab: {str(e)}")
+                st.info("Please check your internet connection and try again.")
         
         with tools_tab:
             try:

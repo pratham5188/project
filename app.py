@@ -1107,349 +1107,315 @@ class StockTrendAI:
         ])
         
         with tab1:
-            self.render_predictions_tab()
+            st.info("🟢 You are in the AI Predictions tab.")
+            try:
+                # Render sidebar and get selections
+                selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh = self.render_sidebar()
+                
+                # Auto-refresh logic
+                if auto_refresh:
+                    time.sleep(30)
+                    st.rerun()
+                
+                # Load and process data
+                stock_data = self.load_and_process_data(selected_stock, period)
+                
+                if stock_data is not None and not stock_data.empty:
+                    # Market status indicator
+                    col1, col2 = st.columns([1, 4])
+                    with col1:
+                        # Get actual market status with detailed information
+                        market_info = self.get_market_status_detailed()
+                        status_color = "green" if market_info["status"] == "OPEN" else "red"
+                        st.markdown(f"**Market Status:** :{status_color}[{market_info['status']}]")
+                    with col2:
+                        st.markdown(f"**Current Time:** {market_info['current_time']}")
+                        st.markdown(f"**Market Hours:** {market_info['market_hours']}")
+                    
+                    # Render market summary
+                    self.render_market_summary(stock_data, selected_stock)
+                    
+                    # Generate predictions
+                    predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking)
+                    
+                    # Render prediction cards with confidence meter
+                    st.markdown("### 🔮 AI Predictions for Tomorrow")
+                    current_price = stock_data['Close'].iloc[-1]
+                    self.render_prediction_cards(predictions, current_price)
+                    
+                    # Add confidence meter
+                    if predictions:
+                        self.render_confidence_meter(predictions)
+                    
+                    # Render stock chart
+                    self.render_stock_chart(stock_data, selected_stock)
+                    
+                    # Show market indices summary (with error handling)
+                    try:
+                        self.render_market_indices_summary()
+                    except Exception as e:
+                        st.warning(f"Market indices unavailable: {str(e)}")
+                    
+                    # Show top gainers and losers (with error handling)
+                    try:
+                        self.render_gainers_losers()
+                    except Exception as e:
+                        st.warning(f"Gainers/Losers data unavailable: {str(e)}")
+                    
+                    # Technical indicators summary
+                    self.render_technical_indicators_summary(stock_data, current_price)
+                else:
+                    st.error("Unable to fetch stock data. Please try again.")
+                    st.info("Try selecting a different stock or refreshing the page.")
+            except Exception as e:
+                st.error(f"Error in predictions tab: {str(e)}")
+                st.info("Please refresh the page and try again.")
         
         with tab2:
-            self.render_portfolio_tab()
+            st.info("🟢 You are in the Portfolio Tracker tab.")
+            try:
+                st.markdown("## 📊 Portfolio Management")
+                
+                # Initialize portfolio tracker
+                self.portfolio_tracker.initialize_portfolio()
+                
+                # Update portfolio prices
+                self.portfolio_tracker.update_portfolio_prices(self.data_fetcher)
+                
+                # Portfolio summary
+                portfolio_performance = self.portfolio_tracker.get_portfolio_performance()
+                if portfolio_performance:
+                    st.markdown(
+                        self.ui_components.create_portfolio_summary(portfolio_performance), 
+                        unsafe_allow_html=True
+                    )
+                
+                # Portfolio management sections
+                port_col1, port_col2 = st.columns([2, 1])
+                
+                with port_col1:
+                    # Add holdings
+                    st.markdown("### ➕ Add New Holding")
+                    
+                    with st.form("add_holding_form"):
+                        symbol = st.selectbox(
+                            "Select Stock", 
+                            options=list(INDIAN_STOCKS.keys()),
+                            format_func=lambda x: f"{INDIAN_STOCKS[x]} ({x})"
+                        )
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            quantity = st.number_input("Quantity", min_value=1, value=1)
+                        with col2:
+                            purchase_price = st.number_input("Purchase Price (₹)", min_value=0.01, value=100.0)
+                        
+                        purchase_date = st.date_input("Purchase Date", value=datetime.now())
+                        
+                        if st.form_submit_button("Add Holding"):
+                            self.portfolio_tracker.add_holding(
+                                symbol, quantity, purchase_price, purchase_date.isoformat()
+                            )
+                            st.success(f"Added {quantity} shares of {symbol} to portfolio")
+                            st.rerun()
+                    
+                    # Current holdings
+                    st.markdown("### 📋 Current Holdings")
+                    self.render_portfolio_holdings()
+                
+                with port_col2:
+                    # Watchlist
+                    st.markdown("### 👀 Watchlist")
+                    self.render_watchlist()
+                    
+                    # Price alerts
+                    st.markdown("### 🔔 Price Alerts")
+                    self.render_price_alerts()
+            except Exception as e:
+                st.error(f"❌ Error in portfolio tab: {str(e)}")
         
         with tab3:
-            self.render_analytics_tab()
+            st.info("🟢 You are in the Advanced Analytics tab.")
+            try:
+                st.markdown("## 📈 Advanced Analytics")
+                
+                # Analytics type selection
+                analytics_type = st.selectbox(
+                    "Select Analysis Type",
+                    ["Risk Analysis", "Monte Carlo Simulation", "Correlation Analysis", "Seasonal Analysis"]
+                )
+                
+                # Get current stock data
+                stock_data = self.load_and_process_data(st.session_state.selected_stock, '1y')
+                
+                if stock_data is None:
+                    st.error("Unable to fetch stock data for analysis.")
+                    return
+                
+                if analytics_type == "Risk Analysis":
+                    self.render_risk_analysis(stock_data)
+                elif analytics_type == "Monte Carlo Simulation":
+                    self.render_monte_carlo_simulation(stock_data)
+                elif analytics_type == "Correlation Analysis":
+                    self.render_correlation_analysis()
+                elif analytics_type == "Seasonal Analysis":
+                    self.render_seasonal_analysis(stock_data)
+            except Exception as e:
+                st.error(f"❌ Error in analytics tab: {str(e)}")
+                st.info("Please try refreshing the page or check your internet connection.")
+                st.expander("🔧 Debug Info").write(f"Error details: {type(e).__name__}: {str(e)}")
         
         with tab4:
-            self.render_news_sentiment_tab()
+            st.info("🟢 You are in the News & Sentiment tab.")
+            try:
+                # Validate symbol before news analysis
+                if not selected_symbol or selected_symbol.strip() == "":
+                    st.warning("⚠️ No stock symbol selected for news analysis.")
+                    st.info("💡 Please select a stock from the sidebar.")
+                else:
+                    app.news_sentiment.render_news_tab(selected_symbol)
+            except Exception as e:
+                st.error(f"❌ Error in news tab: {str(e)}")
+                st.info("Please check your internet connection and try again.")
+                # Provide fallback content
+                st.info("📰 **News analysis temporarily unavailable**")
+                st.markdown("- Market sentiment analysis requires internet connection")
+                st.markdown("- News data may be limited for some stocks")
+                st.markdown("- Try refreshing the page in a few moments")
         
         with tab5:
-            self.render_advanced_tools_tab()
-        
-        # Footer
-        st.markdown("""
-        <div class="footer">
-            <p>⚠️ Disclaimer: This is an AI-powered prediction tool for educational purposes. 
-            Always consult with financial advisors before making investment decisions.</p>
-            <p>💡 Data source: Yahoo Finance | Last updated: {}</p>
-        </div>
-        """.format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), unsafe_allow_html=True)
-    
-    def render_predictions_tab(self):
-        """Render the main predictions tab"""
-        try:
-            # Render sidebar and get selections
-            selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh = self.render_sidebar()
-            
-            # Auto-refresh logic
-            if auto_refresh:
-                time.sleep(30)
-                st.rerun()
-            
-            # Load and process data
-            stock_data = self.load_and_process_data(selected_stock, period)
-            
-            if stock_data is not None and not stock_data.empty:
-                # Market status indicator
-                col1, col2 = st.columns([1, 4])
-                with col1:
-                    # Get actual market status with detailed information
-                    market_info = self.get_market_status_detailed()
-                    status_color = "green" if market_info["status"] == "OPEN" else "red"
-                    st.markdown(f"**Market Status:** :{status_color}[{market_info['status']}]")
-                with col2:
-                    st.markdown(f"**Current Time:** {market_info['current_time']}")
-                    st.markdown(f"**Market Hours:** {market_info['market_hours']}")
+            st.info("🟢 You are in the Advanced Tools tab.")
+            try:
+                st.markdown("## ⚙️ Advanced Tools")
                 
-                # Render market summary
-                self.render_market_summary(stock_data, selected_stock)
+                # Add tabs for different sections
+                tool_tab1, tool_tab2, tool_tab3 = st.tabs(["🤖 AI Models Info", "📊 Analysis Tools", "🔧 Utilities"])
                 
-                # Generate predictions
-                predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking)
+                with tool_tab1:
+                    st.markdown("## 🤖 AI Models Information")
+                    
+                    # Model comparison table
+                    self.model_info.render_model_comparison()
+                    
+                    # Model selection recommendations
+                    self.model_info.render_model_recommendations()
+                    
+                    # Detailed model information
+                    self.model_info.render_model_details()
+                    
+                    # Advanced model explanations
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        self.model_info.render_ensemble_explanation()
+                    with col2:
+                        self.model_info.render_transformer_explanation()
                 
-                # Render prediction cards with confidence meter
-                st.markdown("### 🔮 AI Predictions for Tomorrow")
-                current_price = stock_data['Close'].iloc[-1]
-                self.render_prediction_cards(predictions, current_price)
+                with tool_tab2:
+                    # Advanced features
+                    tool_col1, tool_col2 = st.columns(2)
                 
-                # Add confidence meter
-                if predictions:
-                    self.render_confidence_meter(predictions)
-                
-                # Render stock chart
-                self.render_stock_chart(stock_data, selected_stock)
-                
-                # Show market indices summary (with error handling)
-                try:
-                    self.render_market_indices_summary()
-                except Exception as e:
-                    st.warning(f"Market indices unavailable: {str(e)}")
-                
-                # Show top gainers and losers (with error handling)
-                try:
-                    self.render_gainers_losers()
-                except Exception as e:
-                    st.warning(f"Gainers/Losers data unavailable: {str(e)}")
-                
-                # Technical indicators summary
-                self.render_technical_indicators_summary(stock_data, current_price)
-            else:
-                st.error("Unable to fetch stock data. Please try again.")
-                st.info("Try selecting a different stock or refreshing the page.")
-        except Exception as e:
-            st.error(f"Error in predictions tab: {str(e)}")
-            st.info("Please refresh the page and try again.")
-    
-    def render_portfolio_tab(self):
-        """Render portfolio management tab"""
-        st.markdown("## 📊 Portfolio Management")
-        
-        # Initialize portfolio tracker
-        self.portfolio_tracker.initialize_portfolio()
-        
-        # Update portfolio prices
-        self.portfolio_tracker.update_portfolio_prices(self.data_fetcher)
-        
-        # Portfolio summary
-        portfolio_performance = self.portfolio_tracker.get_portfolio_performance()
-        if portfolio_performance:
-            st.markdown(
-                self.ui_components.create_portfolio_summary(portfolio_performance), 
-                unsafe_allow_html=True
-            )
-        
-        # Portfolio management sections
-        port_col1, port_col2 = st.columns([2, 1])
-        
-        with port_col1:
-            # Add holdings
-            st.markdown("### ➕ Add New Holding")
-            
-            with st.form("add_holding_form"):
-                symbol = st.selectbox(
-                    "Select Stock", 
-                    options=list(INDIAN_STOCKS.keys()),
-                    format_func=lambda x: f"{INDIAN_STOCKS[x]} ({x})"
-                )
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    quantity = st.number_input("Quantity", min_value=1, value=1)
-                with col2:
-                    purchase_price = st.number_input("Purchase Price (₹)", min_value=0.01, value=100.0)
-                
-                purchase_date = st.date_input("Purchase Date", value=datetime.now())
-                
-                if st.form_submit_button("Add Holding"):
-                    self.portfolio_tracker.add_holding(
-                        symbol, quantity, purchase_price, purchase_date.isoformat()
+                with tool_col1:
+                    st.markdown("### 🔄 Data Export")
+                    
+                    # Export current data
+                    if st.button("📥 Export Current Data"):
+                        stock_data = self.load_and_process_data(st.session_state.selected_stock, '1y')
+                        if stock_data is not None:
+                            csv = stock_data.to_csv()
+                            st.download_button(
+                                label="Download CSV",
+                                data=csv,
+                                file_name=f"{st.session_state.selected_stock}_data.csv",
+                                mime="text/csv"
+                            )
+                    
+                    # Market comparison
+                    st.markdown("### 📊 Market Comparison")
+                    compare_stocks = st.multiselect(
+                        "Select stocks to compare",
+                        options=list(INDIAN_STOCKS.keys()),
+                        default=[st.session_state.selected_stock],
+                        format_func=lambda x: f"{INDIAN_STOCKS[x]} ({x})"
                     )
-                    st.success(f"Added {quantity} shares of {symbol} to portfolio")
-                    st.rerun()
-            
-            # Current holdings
-            st.markdown("### 📋 Current Holdings")
-            self.render_portfolio_holdings()
-        
-        with port_col2:
-            # Watchlist
-            st.markdown("### 👀 Watchlist")
-            self.render_watchlist()
-            
-            # Price alerts
-            st.markdown("### 🔔 Price Alerts")
-            self.render_price_alerts()
-    
-    def render_analytics_tab(self):
-        """Render advanced analytics tab"""
-        st.markdown("## 📈 Advanced Analytics")
-        
-        # Analytics type selection
-        analytics_type = st.selectbox(
-            "Select Analysis Type",
-            ["Risk Analysis", "Monte Carlo Simulation", "Correlation Analysis", "Seasonal Analysis"]
-        )
-        
-        # Get current stock data
-        stock_data = self.load_and_process_data(st.session_state.selected_stock, '1y')
-        
-        if stock_data is None:
-            st.error("Unable to fetch stock data for analysis.")
-            return
-        
-        if analytics_type == "Risk Analysis":
-            self.render_risk_analysis(stock_data)
-        elif analytics_type == "Monte Carlo Simulation":
-            self.render_monte_carlo_simulation(stock_data)
-        elif analytics_type == "Correlation Analysis":
-            self.render_correlation_analysis()
-        elif analytics_type == "Seasonal Analysis":
-            self.render_seasonal_analysis(stock_data)
-    
-    def render_news_sentiment_tab(self):
-        """Render news and sentiment analysis tab"""
-        st.markdown("## 📰 News & Sentiment Analysis")
-        
-        # Get sentiment data
-        symbol = st.session_state.selected_stock
-        company_name = INDIAN_STOCKS.get(symbol, symbol)
-        
-        with st.spinner("Analyzing news sentiment..."):
-            sentiment_data = self.news_sentiment.get_news_sentiment(symbol, company_name)
-        
-        # Sentiment overview
-        if sentiment_data:
-            sent_col1, sent_col2, sent_col3 = st.columns(3)
-            
-            with sent_col1:
-                st.metric(
-                    "Overall Sentiment",
-                    sentiment_data['sentiment_signal'],
-                    help="Based on recent news analysis"
-                )
-            
-            with sent_col2:
-                st.metric(
-                    "News Count",
-                    str(sentiment_data['news_count']),
-                    help="Number of analyzed articles"
-                )
-            
-            with sent_col3:
-                sentiment_score = sentiment_data['overall_sentiment'] * 100
-                st.metric(
-                    "Sentiment Score",
-                    f"{sentiment_score:+.1f}%",
-                    help="Positive/Negative sentiment strength"
-                )
-            
-            # Sentiment distribution chart
-            self.render_sentiment_distribution(sentiment_data)
-            
-            # News feed
-            st.markdown("### 📰 Recent News")
-            self.ui_components.create_news_feed(sentiment_data['news_items'])
-    
-    def render_advanced_tools_tab(self):
-        """Render advanced tools and features"""
-        st.markdown("## ⚙️ Advanced Tools")
-        
-        # Add tabs for different sections
-        tool_tab1, tool_tab2, tool_tab3 = st.tabs(["🤖 AI Models Info", "📊 Analysis Tools", "🔧 Utilities"])
-        
-        with tool_tab1:
-            st.markdown("## 🤖 AI Models Information")
-            
-            # Model comparison table
-            self.model_info.render_model_comparison()
-            
-            # Model selection recommendations
-            self.model_info.render_model_recommendations()
-            
-            # Detailed model information
-            self.model_info.render_model_details()
-            
-            # Advanced model explanations
-            col1, col2 = st.columns(2)
-            with col1:
-                self.model_info.render_ensemble_explanation()
-            with col2:
-                self.model_info.render_transformer_explanation()
-        
-        with tool_tab2:
-            # Advanced features
-            tool_col1, tool_col2 = st.columns(2)
-        
-        with tool_col1:
-            st.markdown("### 🔄 Data Export")
-            
-            # Export current data
-            if st.button("📥 Export Current Data"):
-                stock_data = self.load_and_process_data(st.session_state.selected_stock, '1y')
-                if stock_data is not None:
-                    csv = stock_data.to_csv()
-                    st.download_button(
-                        label="Download CSV",
-                        data=csv,
-                        file_name=f"{st.session_state.selected_stock}_data.csv",
-                        mime="text/csv"
-                    )
-            
-            # Market comparison
-            st.markdown("### 📊 Market Comparison")
-            compare_stocks = st.multiselect(
-                "Select stocks to compare",
-                options=list(INDIAN_STOCKS.keys()),
-                default=[st.session_state.selected_stock],
-                format_func=lambda x: f"{INDIAN_STOCKS[x]} ({x})"
-            )
-            
-            if len(compare_stocks) > 1:
-                self.render_stock_comparison(compare_stocks)
-        
-        with tool_col2:
-            st.markdown("### 🎯 Backtesting")
-            
-            # Simple backtesting
-            if st.button("🔍 Run Backtest"):
-                self.run_simple_backtest()
-            
-            # Model performance
-            st.markdown("### 📈 Model Performance")
-            self.render_model_performance_metrics()
-        
-        with tool_tab3:
-            st.markdown("## 🔧 Utilities")
-            
-            util_col1, util_col2 = st.columns(2)
-            
-            with util_col1:
-                st.markdown("### ⚙️ App Settings")
-                st.info("🎨 Color theme: Dark Neon (with white text)")
-                st.info("🤖 AI Models: 5 Advanced Models Available")
-                st.info("📊 Data Source: Yahoo Finance (Indian Markets)")
+                    
+                    if len(compare_stocks) > 1:
+                        self.render_stock_comparison(compare_stocks)
                 
-                # Model status
-                st.markdown("### 🔋 Model Status")
-                model_status = {
-                    "XGBoost": "✅ Ready",
-                    "LSTM": "✅ Ready", 
-                    "Prophet": "✅ Ready",
-                    "Ensemble": "✅ Ready",
-                    "Transformer": "✅ Ready"
-                }
+                with tool_col2:
+                    st.markdown("### 🎯 Backtesting")
+                    
+                    # Simple backtesting
+                    if st.button("🔍 Run Backtest"):
+                        self.run_simple_backtest()
+                    
+                    # Model performance
+                    st.markdown("### 📈 Model Performance")
+                    self.render_model_performance_metrics()
                 
-                for model, status in model_status.items():
-                    st.markdown(f"**{model}:** {status}")
+                with tool_tab3:
+                    st.markdown("## 🔧 Utilities")
+                    
+                    util_col1, util_col2 = st.columns(2)
+                    
+                    with util_col1:
+                        st.markdown("### ⚙️ App Settings")
+                        st.info("🎨 Color theme: Dark Neon (with white text)")
+                        st.info("🤖 AI Models: 5 Advanced Models Available")
+                        st.info("📊 Data Source: Yahoo Finance (Indian Markets)")
+                        
+                        # Model status
+                        st.markdown("### 🔋 Model Status")
+                        model_status = {
+                            "XGBoost": "✅ Ready",
+                            "LSTM": "✅ Ready", 
+                            "Prophet": "✅ Ready",
+                            "Ensemble": "✅ Ready",
+                            "Transformer": "✅ Ready"
+                        }
+                        
+                        for model, status in model_status.items():
+                            st.markdown(f"**{model}:** {status}")
+                    
+                    with util_col2:
+                        st.markdown("### 📋 Quick Actions")
+                        
+                        if st.button("🔄 Reset All Models"):
+                            st.session_state.predictions = None
+                            st.success("All models reset successfully!")
+                        
+                        if st.button("🧹 Clear Cache"):
+                            st.cache_data.clear()
+                            st.success("Cache cleared successfully!")
+                        
+                        st.markdown("### 📝 App Information")
+                        st.markdown("""
+                        **Version:** 2.0 - Advanced AI Edition
+                        **Models:** 5 State-of-the-art AI Models
+                        **Features:** 
+                        - Multi-model predictions
+                        - Real-time data
+                        - Advanced analytics
+                        - Portfolio tracking
+                        - News sentiment analysis
+                        """)
+                        
+                        st.markdown("### 🎯 Performance Tips")
+                        st.markdown("""
+                        💡 **For Best Results:**
+                        - Use multiple models for consensus
+                        - Check confidence levels
+                        - Consider market conditions
+                        - Combine with technical analysis
+                        - Monitor news sentiment
+                        """)
+            except Exception as e:
+                st.error(f"❌ Error in tools tab: {str(e)}")
+        
+        # Auto-refresh logic
+        if auto_refresh:
+            time.sleep(30)
+            st.rerun()
             
-            with util_col2:
-                st.markdown("### 📋 Quick Actions")
-                
-                if st.button("🔄 Reset All Models"):
-                    st.session_state.predictions = None
-                    st.success("All models reset successfully!")
-                
-                if st.button("🧹 Clear Cache"):
-                    st.cache_data.clear()
-                    st.success("Cache cleared successfully!")
-                
-                st.markdown("### 📝 App Information")
-                st.markdown("""
-                **Version:** 2.0 - Advanced AI Edition
-                **Models:** 5 State-of-the-art AI Models
-                **Features:** 
-                - Multi-model predictions
-                - Real-time data
-                - Advanced analytics
-                - Portfolio tracking
-                - News sentiment analysis
-                """)
-                
-                st.markdown("### 🎯 Performance Tips")
-                st.markdown("""
-                💡 **For Best Results:**
-                - Use multiple models for consensus
-                - Check confidence levels
-                - Consider market conditions
-                - Combine with technical analysis
-                - Monitor news sentiment
-                """)
-    
     def render_confidence_meter(self, predictions):
         """Render enhanced confidence meter for predictions"""
         if not predictions:
@@ -2466,12 +2432,14 @@ if __name__ == "__main__":
         
         with portfolio_tab:
             try:
+                st.info("🟢 You are in the Portfolio Tracker tab.")
                 app.portfolio_tracker.render_portfolio_tab()
             except Exception as e:
                 st.error(f"❌ Error in portfolio tab: {str(e)}")
         
         with analytics_tab:
             try:
+                st.info("🟢 You are in the Advanced Analytics tab.")
                 if stock_data is not None and not stock_data.empty:
                     # Validate data quality before passing to analytics
                     if len(stock_data) < 10:
@@ -2489,6 +2457,7 @@ if __name__ == "__main__":
         
         with news_tab:
             try:
+                st.info("🟢 You are in the News & Sentiment tab.")
                 # Validate symbol before news analysis
                 if not selected_symbol or selected_symbol.strip() == "":
                     st.warning("⚠️ No stock symbol selected for news analysis.")
@@ -2506,6 +2475,7 @@ if __name__ == "__main__":
         
         with tools_tab:
             try:
+                st.info("🟢 You are in the Advanced Tools tab.")
                 app.render_advanced_tools_tab()
             except Exception as e:
                 st.error(f"❌ Error in tools tab: {str(e)}")

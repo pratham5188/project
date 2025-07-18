@@ -40,6 +40,36 @@ st.set_page_config(
 # Apply custom CSS and initialize error handling
 try:
     st.markdown(get_custom_css(), unsafe_allow_html=True)
+    # Add global centering and spacing CSS for all main content
+    st.markdown("""
+    <style>
+    .main .block-container {
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+    .prediction-card, .metric-card, .stPlotlyChart, .element-container:has(.prediction-card) {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        display: block !important;
+    }
+    .element-container:has(.prediction-card), .element-container:has(.metric-card), .element-container:has(.stPlotlyChart) {
+        display: flex !important;
+        justify-content: center !important;
+    }
+    .stTextInput > div > input,
+    .stTextArea textarea,
+    .stNumberInput input,
+    div[data-baseweb='select'] > div,
+    div[data-baseweb='select'] input,
+    div[data-baseweb='tag'] {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 except Exception as e:
     st.error(f"CSS loading error: {e}")
     # Fallback to minimal styling

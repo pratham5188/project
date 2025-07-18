@@ -85,8 +85,9 @@ class StockTrendAI:
         if 'show_control_panel' not in st.session_state:
             st.session_state.show_control_panel = False
         
-        # Enhanced 3-dot menu header with improved styling
-        st.sidebar.markdown("""
+        # Enhanced 3-dot menu header with improved styling and proper arrow
+        arrow_icon = "🔽" if st.session_state.show_control_panel else "▶️"
+        st.sidebar.markdown(f"""
         <div style="
             display: flex; 
             justify-content: space-between; 
@@ -99,12 +100,12 @@ class StockTrendAI:
             box-shadow: 0 0 15px rgba(0,255,136,0.3);
         ">
             <h2 style="color: #00ff88; margin: 0; font-size: 1.2rem;">🎯 Control Panel</h2>
-            <div style="color: #00ff88; font-size: 1.5rem; cursor: pointer;">⋮</div>
+            <div style="color: #00ff88; font-size: 1.5rem; cursor: pointer;">{arrow_icon}</div>
         </div>
         """, unsafe_allow_html=True)
         
         # Enhanced toggle button with improved visibility
-        button_text = "🔽 Hide Settings" if st.session_state.show_control_panel else "⚙️ Show Settings"
+        button_text = "🔽 Hide Settings" if st.session_state.show_control_panel else "▶️ Show Settings"
         button_style = """
         <style>
         .stButton > button {
@@ -133,7 +134,7 @@ class StockTrendAI:
         # Show minimized view if collapsed
         if not st.session_state.show_control_panel:
             # Minimized view - show only essential info
-            st.sidebar.markdown("""
+            st.sidebar.markdown(f"""
             <div style="
                 background: rgba(0,0,0,0.3);
                 padding: 1rem;
@@ -141,11 +142,21 @@ class StockTrendAI:
                 border: 1px solid rgba(255,255,255,0.1);
                 text-align: center;
             ">
-                <p style="color: #00ff88; margin: 0;">Settings Hidden</p>
+                <p style="color: #00ff88; margin: 0;">{arrow_icon} Settings Hidden</p>
                 <p style="color: #ffffff; font-size: 0.8rem; margin: 0;">Click above to expand</p>
             </div>
             """, unsafe_allow_html=True)
-            return
+            # Return default values when collapsed
+            return (st.session_state.get('selected_stock', DEFAULT_STOCK),
+                   st.session_state.get('selected_period', '1y'),
+                   st.session_state.get('use_xgboost', True),
+                   st.session_state.get('use_lstm', True), 
+                   st.session_state.get('use_prophet', True),
+                   st.session_state.get('use_ensemble', True),
+                   st.session_state.get('use_transformer', True),
+                   st.session_state.get('use_gru', True),
+                   st.session_state.get('use_stacking', True),
+                   st.session_state.get('auto_refresh', False))
         
         # Full control panel
         st.sidebar.markdown("### 📈 Stock Selection")
@@ -1800,65 +1811,132 @@ class StockTrendAI:
         st.plotly_chart(fig, use_container_width=True)
     
     def render_stock_comparison(self, compare_stocks):
-        """Render stock comparison"""
+        """Render stock comparison with proper error handling"""
         st.markdown("### 📊 Stock Comparison")
         
-        # Get data for all selected stocks
-        comparison_data = {}
-        for stock in compare_stocks:
-            data = self.load_and_process_data(stock, '6mo')
-            if data is not None:
-                comparison_data[stock] = data['Close']
-        
-        if len(comparison_data) > 1:
+        try:
+            if not compare_stocks or len(compare_stocks) < 2:
+                st.warning("⚠️ Please select at least 2 stocks to compare.")
+                return
+            
+            # Get data for all selected stocks
+            comparison_data = {}
+            failed_stocks = []
+            
+            for stock in compare_stocks:
+                try:
+                    data = self.load_and_process_data(stock, '6mo')
+                    if data is not None and not data.empty and 'Close' in data.columns:
+                        comparison_data[stock] = data['Close']
+                    else:
+                        failed_stocks.append(stock)
+                except Exception as e:
+                    st.warning(f"⚠️ Could not load data for {stock}: {str(e)}")
+                    failed_stocks.append(stock)
+            
+            if failed_stocks:
+                st.warning(f"⚠️ Failed to load data for: {', '.join(failed_stocks)}")
+            
+            if len(comparison_data) < 2:
+                st.error("❌ Need at least 2 stocks with valid data for comparison.")
+                return
+            
             # Create comparison chart
             fig = go.Figure()
             
+            colors = ['#00ff88', '#00aaff', '#ff6600', '#ff0044', '#ffaa00', '#aa00ff', '#ff9900']
+            color_index = 0
+            
             for stock, prices in comparison_data.items():
-                # Normalize prices to percentage change
-                normalized = (prices / prices.iloc[0] - 1) * 100
+                try:
+                    # Normalize prices to percentage change from the first valid value
+                    first_valid_price = prices.dropna().iloc[0] if not prices.dropna().empty else 1
+                    if first_valid_price > 0:
+                        normalized = (prices / first_valid_price - 1) * 100
+                        
+                        # Get company name from INDIAN_STOCKS or use stock symbol
+                        company_name = INDIAN_STOCKS.get(stock, stock)
+                        
+                        fig.add_trace(go.Scatter(
+                            x=normalized.index,
+                            y=normalized,
+                            mode='lines',
+                            name=f"{company_name} ({stock})",
+                            line=dict(width=3, color=colors[color_index % len(colors)])
+                        ))
+                        color_index += 1
+                except Exception as e:
+                    st.warning(f"⚠️ Error processing {stock}: {str(e)}")
+                    continue
+            
+            if fig.data:  # Check if we have any traces
+                fig.update_layout(
+                    title=dict(
+                        text="📊 Stock Performance Comparison (% Change from Start)",
+                        font=dict(color='white', size=18)
+                    ),
+                    xaxis_title="Date",
+                    yaxis_title="Percentage Change (%)",
+                    template="plotly_dark",
+                    paper_bgcolor='black',
+                    plot_bgcolor='black',
+                    font=dict(color='white', family='Arial', size=12),
+                    legend=dict(
+                        font=dict(color='white'),
+                        bgcolor='rgba(0,0,0,0.5)',
+                        bordercolor='rgba(255,255,255,0.2)',
+                        borderwidth=1
+                    ),
+                    height=500,
+                    hovermode='x unified'
+                )
                 
-                fig.add_trace(go.Scatter(
-                    x=normalized.index,
-                    y=normalized,
-                    mode='lines',
-                    name=f"{stock} ({INDIAN_STOCKS.get(stock, stock)})",
-                    line=dict(width=2)
-                ))
-            
-            fig.update_layout(
-                title=dict(
-                    text="Stock Performance Comparison (% Change)",
-                    font=dict(color='white', size=18)
-                ),
-                xaxis_title="Date",
-                yaxis_title="Percentage Change (%)",
-                template="plotly_dark",
-                paper_bgcolor='black',
-                plot_bgcolor='black',
-                font=dict(color='white', family='Arial', size=12),
-                legend=dict(
-                    font=dict(color='white'),
-                    bgcolor='rgba(0,0,0,0.5)'
-                ),
-                height=500
-            )
-            
-            # Update axes for white text
-            fig.update_xaxes(
-                gridcolor='rgba(255,255,255,0.1)',
-                linecolor='rgba(255,255,255,0.2)',
-                tickfont=dict(color='white'),
-                titlefont=dict(color='white')
-            )
-            fig.update_yaxes(
-                gridcolor='rgba(255,255,255,0.1)',
-                linecolor='rgba(255,255,255,0.2)',
-                tickfont=dict(color='white'),
-                titlefont=dict(color='white')
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
+                # Update axes for white text
+                fig.update_xaxes(
+                    gridcolor='rgba(255,255,255,0.1)',
+                    linecolor='rgba(255,255,255,0.2)',
+                    tickfont=dict(color='white'),
+                    titlefont=dict(color='white')
+                )
+                fig.update_yaxes(
+                    gridcolor='rgba(255,255,255,0.1)',
+                    linecolor='rgba(255,255,255,0.2)',
+                    tickfont=dict(color='white'),
+                    titlefont=dict(color='white')
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Add comparison summary
+                st.markdown("#### 📈 Performance Summary")
+                summary_data = []
+                for stock, prices in comparison_data.items():
+                    try:
+                        valid_prices = prices.dropna()
+                        if len(valid_prices) >= 2:
+                            start_price = valid_prices.iloc[0]
+                            end_price = valid_prices.iloc[-1]
+                            change_percent = (end_price - start_price) / start_price * 100
+                            
+                            summary_data.append({
+                                'Stock': f"{INDIAN_STOCKS.get(stock, stock)} ({stock})",
+                                'Start Price': f"₹{start_price:.2f}",
+                                'Current Price': f"₹{end_price:.2f}",
+                                'Change (%)': f"{change_percent:+.2f}%"
+                            })
+                    except Exception as e:
+                        continue
+                
+                if summary_data:
+                    import pandas as pd
+                    summary_df = pd.DataFrame(summary_data)
+                    st.dataframe(summary_df, use_container_width=True)
+            else:
+                st.error("❌ No valid data available for comparison chart.")
+                
+        except Exception as e:
+            st.error(f"❌ Error in stock comparison: {str(e)}")
+            st.info("Please try selecting different stocks or refresh the page.")
     
     def run_simple_backtest(self):
         """Run simple backtesting"""
@@ -2210,4 +2288,151 @@ class StockTrendAI:
 # Run the application
 if __name__ == "__main__":
     app = StockTrendAI()
-    app.run()
+    
+    # Main application logic
+    try:
+        # Render header
+        app.render_header()
+        
+        # Render sidebar and get configuration
+        sidebar_result = app.render_sidebar()
+        
+        # Handle the case where sidebar returns None (when collapsed)
+        if sidebar_result is None:
+            st.info("📱 Control panel is hidden. Click 'Show Settings' to configure options.")
+            st.stop()
+        
+        # Unpack sidebar results safely
+        (selected_symbol, period, use_xgboost, use_lstm, use_prophet, 
+         use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh) = sidebar_result
+        
+        # Load and process data
+        stock_data = app.load_and_process_data(selected_symbol, period)
+        
+        if stock_data is None:
+            st.error("❌ Unable to load stock data. Please try a different stock or time period.")
+            st.stop()
+        
+        # Create tabs for different sections
+        prediction_tab, portfolio_tab, analytics_tab, news_tab, tools_tab = st.tabs([
+            "🤖 AI Predictions",
+            "💼 Portfolio Tracker", 
+            "📊 Advanced Analytics",
+            "📰 News & Sentiment",
+            "⚙️ Advanced Tools"
+        ])
+        
+        with prediction_tab:
+            try:
+                # Market summary
+                current_price = stock_data['Close'].iloc[-1]
+                app.render_market_summary(stock_data, selected_symbol)
+                
+                # Interactive chart
+                app.render_stock_chart(stock_data, selected_symbol)
+                
+                # Generate predictions
+                st.markdown("## 🤖 AI Model Predictions")
+                
+                with st.spinner("🧠 AI models are analyzing market data..."):
+                    predictions = {}
+                    
+                    # Run selected models
+                    if use_xgboost:
+                        try:
+                            xgb_pred = app.xgb_predictor.predict(stock_data)
+                            if xgb_pred:
+                                predictions['XGBoost'] = xgb_pred
+                        except Exception as e:
+                            st.warning(f"⚠️ XGBoost prediction failed: {str(e)}")
+                    
+                    if use_lstm:
+                        try:
+                            lstm_pred = app.lstm_predictor.predict(stock_data)
+                            if lstm_pred:
+                                predictions['LSTM'] = lstm_pred
+                        except Exception as e:
+                            st.warning(f"⚠️ LSTM prediction failed: {str(e)}")
+                    
+                    if use_prophet:
+                        try:
+                            prophet_pred = app.prophet_predictor.predict(stock_data)
+                            if prophet_pred:
+                                predictions['Prophet'] = prophet_pred
+                        except Exception as e:
+                            st.warning(f"⚠️ Prophet prediction failed: {str(e)}")
+                    
+                    if use_ensemble:
+                        try:
+                            ensemble_pred = app.ensemble_predictor.predict(stock_data)
+                            if ensemble_pred:
+                                predictions['Ensemble'] = ensemble_pred
+                        except Exception as e:
+                            st.warning(f"⚠️ Ensemble prediction failed: {str(e)}")
+                    
+                    if use_transformer:
+                        try:
+                            transformer_pred = app.transformer_predictor.predict(stock_data)
+                            if transformer_pred:
+                                predictions['Transformer'] = transformer_pred
+                        except Exception as e:
+                            st.warning(f"⚠️ Transformer prediction failed: {str(e)}")
+                    
+                    if use_gru:
+                        try:
+                            gru_pred = app.gru_predictor.predict(stock_data)
+                            if gru_pred:
+                                predictions['GRU'] = gru_pred
+                        except Exception as e:
+                            st.warning(f"⚠️ GRU prediction failed: {str(e)}")
+                    
+                    if use_stacking:
+                        try:
+                            stacking_pred = app.stacking_predictor.predict(stock_data)
+                            if stacking_pred:
+                                predictions['Stacking'] = stacking_pred
+                        except Exception as e:
+                            st.warning(f"⚠️ Stacking prediction failed: {str(e)}")
+                
+                # Display predictions
+                if predictions:
+                    app.render_prediction_cards(predictions, current_price)
+                else:
+                    st.warning("⚠️ No predictions available. Please select at least one model or try refreshing.")
+                
+            except Exception as e:
+                st.error(f"❌ Error in prediction tab: {str(e)}")
+                st.info("Please try refreshing the page or selecting a different stock.")
+        
+        with portfolio_tab:
+            try:
+                app.portfolio_tracker.render_portfolio_tab()
+            except Exception as e:
+                st.error(f"❌ Error in portfolio tab: {str(e)}")
+        
+        with analytics_tab:
+            try:
+                app.advanced_analytics.render_analytics_tab(stock_data, selected_symbol)
+            except Exception as e:
+                st.error(f"❌ Error in analytics tab: {str(e)}")
+        
+        with news_tab:
+            try:
+                app.news_sentiment.render_news_tab(selected_symbol)
+            except Exception as e:
+                st.error(f"❌ Error in news tab: {str(e)}")
+        
+        with tools_tab:
+            try:
+                app.render_advanced_tools_tab()
+            except Exception as e:
+                st.error(f"❌ Error in tools tab: {str(e)}")
+        
+        # Auto-refresh logic
+        if auto_refresh:
+            time.sleep(30)
+            st.rerun()
+            
+    except Exception as e:
+        st.error(f"❌ Application error: {str(e)}")
+        st.info("Please refresh the page and try again.")

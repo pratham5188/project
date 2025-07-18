@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from scipy import stats
 import warnings
 warnings.filterwarnings('ignore')
+import streamlit as st
 
 class AdvancedAnalytics:
     """Advanced analytics and visualization tools for stock analysis"""

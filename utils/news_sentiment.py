@@ -408,7 +408,7 @@ class NewsSentimentAnalyzer:
                             
                             with col1:
                                 st.markdown(f"**Title:** {article['title']}")
-                                st.markdown(f"**Summary:** {article['content'][:300]}...")
+                                st.markdown(f"**Summary:** {article['summary'][:300]}...")
                                 st.markdown(f"**Source:** {article['source']}")
                                 st.markdown(f"**Published:** {article['published_date']}")
                             

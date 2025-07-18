@@ -49,12 +49,24 @@ try:
         margin-right: auto;
         padding-left: 32px;
         padding-right: 32px;
+        padding-top: 24px;
+        padding-bottom: 24px;
+        background: #111 !important;
+        border-radius: 18px;
+        box-sizing: border-box;
+        min-height: 98vh;
     }
     .stTabs [data-baseweb="tab-list"] {
         justify-content: center !important;
         gap: 32px !important;
         width: 100%;
         display: flex !important;
+        background: #111 !important;
+        border-radius: 12px 12px 0 0;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
     }
     .stTabs [data-baseweb="tab"] {
         flex: 1 1 0;
@@ -64,16 +76,27 @@ try:
         margin: 0 8px !important;
         font-size: 1.1rem;
         font-weight: 600;
-        border-radius: 8px 8px 0 0;
+        border-radius: 12px 12px 0 0;
+        background: #111 !important;
+        color: #fff !important;
     }
-    .prediction-card, .metric-card, .stPlotlyChart, .element-container:has(.prediction-card) {
-        margin-left: auto !important;
-        margin-right: auto !important;
-        display: block !important;
+    .stTabs [data-baseweb="tab-panel"] {
+        background: #111 !important;
+        padding: 24px 12px 24px 12px !important;
+        border-radius: 0 0 12px 12px;
+        min-height: 80vh;
     }
-    .element-container:has(.prediction-card), .element-container:has(.metric-card), .element-container:has(.stPlotlyChart) {
-        display: flex !important;
-        justify-content: center !important;
+    .stTabs {
+        background: #111 !important;
+        border-radius: 12px;
+        margin-bottom: 0;
+    }
+    .stPlotlyChart, .element-container:has(.stPlotlyChart) {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding: 12px 0 12px 0 !important;
+        border-radius: 12px;
+        background: #111 !important;
     }
     .stTextInput > div > input,
     .stTextArea textarea,
@@ -83,8 +106,8 @@ try:
     div[data-baseweb='tag'] {
         margin-left: auto !important;
         margin-right: auto !important;
+        border-radius: 8px !important;
     }
-    /* Ensure all metric cards in AI Predictions tab are the same size */
     .metric-card {
         min-width: 180px;
         max-width: 200px;
@@ -108,6 +131,30 @@ try:
         font-size: 1.3rem;
         font-weight: bold;
         color: #fff;
+    }
+    /* Add padding to all markdown, info, warning, error, and success boxes */
+    .element-container:has(.stMarkdown),
+    .element-container:has(.stAlert),
+    .element-container:has(.stPlotlyChart),
+    .element-container:has(.stDataFrame),
+    .element-container:has(.stMetric),
+    .element-container:has(.stTextInput),
+    .element-container:has(.stTextArea),
+    .element-container:has(.stNumberInput),
+    .element-container:has(.stSelectbox),
+    .element-container:has(.stMultiSelect),
+    .element-container:has(.stButton),
+    .element-container:has(.stExpander),
+    .element-container:has(.stColumns),
+    .element-container:has(.stRadio),
+    .element-container:has(.stCheckbox) {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        box-sizing: border-box;
+    }
+    /* Prevent any content from touching the border */
+    .stAppViewContainer, .main, .block-container, .stTabs, .stTabs [data-baseweb="tab-panel"] {
+        box-sizing: border-box !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -191,7 +238,6 @@ class StockTrendAI:
             st.session_state.show_control_panel = not st.session_state.show_control_panel
             st.rerun()
         # Enhanced 3-dot menu header with improved styling and proper arrow
-        arrow_icon = "🔽" if st.session_state.show_control_panel else "▶️"
         st.sidebar.markdown(f"""
         <div style="
             display: flex; 

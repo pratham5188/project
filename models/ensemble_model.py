@@ -105,7 +105,8 @@ class EnsemblePredictor:
         # Add SVM if we have enough data
         try:
             clf_models.append(('svm', SVC(probability=True, random_state=42)))
-        except:
+        except Exception as e:
+            print(f"SVM not available for classification ensemble: {e}")
             pass
         
         self.classification_ensemble = VotingClassifier(
@@ -123,7 +124,8 @@ class EnsemblePredictor:
         # Add SVR if available
         try:
             reg_models.append(('svr', SVR(kernel='rbf')))
-        except:
+        except Exception as e:
+            print(f"SVR not available for regression ensemble: {e}")
             pass
         
         self.regression_ensemble = VotingRegressor(estimators=reg_models)

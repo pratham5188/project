@@ -36,12 +36,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Apply custom CSS (with cache clear)
-st.markdown(get_custom_css(), unsafe_allow_html=True)
+# Apply custom CSS and initialize error handling
+try:
+    st.markdown(get_custom_css(), unsafe_allow_html=True)
+except Exception as e:
+    st.error(f"CSS loading error: {e}")
+    # Fallback to minimal styling
+    st.markdown("<style>body{background-color: #0e1117;}</style>", unsafe_allow_html=True)
 
-# Force cache clear for immediate visibility of changes
+# Initialize cache clear flag (removed auto-rerun to prevent infinite loops)
 if 'cache_cleared' not in st.session_state:
-    st.rerun()
     st.session_state.cache_cleared = True
 
 # Initialize session state

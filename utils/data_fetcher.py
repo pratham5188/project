@@ -88,8 +88,9 @@ class DataFetcher:
                             if not data.empty:
                                 print(f"Fallback successful for {symbol}")
                                 break
-                        except:
-                            pass
+                        except Exception as e:
+                            print(f"Fallback failed for {symbol}: {e}")
+                            continue
                     time.sleep(1)  # Wait 1 second before retry
             
             if data is None or data.empty:
@@ -270,7 +271,8 @@ class DataFetcher:
             # Check if we get valid info
             return 'longName' in info or 'shortName' in info
             
-        except:
+        except Exception as e:
+            print(f"Error validating symbol {symbol}: {e}")
             return False
     
     def get_market_summary(self):

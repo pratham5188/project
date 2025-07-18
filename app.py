@@ -1346,6 +1346,13 @@ class StockTrendAI:
                         background-color: #111 !important;
                         color: #fff !important;
                     }
+                    /* Style the selected chips/tags */
+                    div[data-baseweb='tag'] {
+                        background-color: #222 !important;
+                        color: #fff !important;
+                        border-radius: 6px !important;
+                        border: 1px solid #00ff88 !important;
+                    }
                     </style>
                     """, unsafe_allow_html=True)
                     compare_stocks = st.multiselect(

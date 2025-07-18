@@ -14,6 +14,28 @@ class AdvancedAnalytics:
     def __init__(self):
         self.analysis_cache = {}
     
+    def calculate_volatility_analysis(self, stock_data):
+        """Calculate volatility analysis for stock data"""
+        try:
+            if stock_data is None or stock_data.empty:
+                return None
+            
+            returns = stock_data['Close'].pct_change().dropna()
+            
+            # Calculate different volatility measures
+            volatility_metrics = {
+                'daily_volatility': returns.std(),
+                'annualized_volatility': returns.std() * np.sqrt(252),
+                'rolling_volatility_30d': returns.rolling(30).std(),
+                'rolling_volatility_60d': returns.rolling(60).std(),
+                'volatility_percentile': stats.percentileofscore(returns.rolling(252).std().dropna(), returns.std())
+            }
+            
+            return volatility_metrics
+        except Exception as e:
+            print(f"Error calculating volatility analysis: {e}")
+            return None
+    
     def perform_correlation_analysis(self, data_fetcher, symbols, period='3mo'):
         """Perform correlation analysis between multiple stocks"""
         price_data = {}
@@ -68,10 +90,18 @@ class AdvancedAnalytics:
         # Sortino ratio (downside deviation)
         downside_returns = returns_data[returns_data < 0]
         downside_deviation = downside_returns.std() * np.sqrt(252)
-        sortino_ratio = (annual_return - risk_free_rate) / downside_deviation if downside_deviation > 0 else np.inf
+        
+        # Handle Series comparison properly
+        if isinstance(downside_deviation, pd.Series):
+            sortino_ratio = np.where(downside_deviation > 0, (annual_return - risk_free_rate) / downside_deviation, np.inf)
+        else:
+            sortino_ratio = (annual_return - risk_free_rate) / downside_deviation if downside_deviation > 0 else np.inf
         
         # Calmar ratio
-        calmar_ratio = annual_return / abs(max_drawdown) if max_drawdown != 0 else np.inf
+        if isinstance(max_drawdown, pd.Series):
+            calmar_ratio = np.where(max_drawdown != 0, annual_return / abs(max_drawdown), np.inf)
+        else:
+            calmar_ratio = annual_return / abs(max_drawdown) if max_drawdown != 0 else np.inf
         
         return {
             'annual_return': annual_return,
@@ -551,6 +581,18 @@ class AdvancedAnalytics:
         
         if stock_data is None or stock_data.empty:
             st.error("❌ No stock data available for analysis")
+            return
+        
+        # Additional data validation
+        if len(stock_data) < 5:
+            st.error("❌ Insufficient data for analysis. Need at least 5 data points.")
+            return
+        
+        # Check for required columns
+        required_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+        missing_columns = [col for col in required_columns if col not in stock_data.columns]
+        if missing_columns:
+            st.error(f"❌ Missing required data columns: {missing_columns}")
             return
         
         # Analytics type selection

@@ -13,7 +13,6 @@ class UIComponents:
     @staticmethod
     def create_metric_card(title, value, delta=None, delta_color="normal", help_text=None):
         """Create a beautiful metric card using Streamlit components"""
-        import streamlit as st
         
         st.metric(
             label=title,

@@ -345,6 +345,17 @@ class NewsSentimentAnalyzer:
         """Render the complete news and sentiment analysis interface"""
         st.markdown("# 📰 News & Sentiment Analysis")
         
+        # Validate input
+        if not symbol or symbol.strip() == "":
+            st.warning("Please select a stock symbol to analyze news sentiment.")
+            st.info("💡 Use the sidebar to select a stock for news analysis.")
+            return
+        
+        # Validate symbol format
+        if not isinstance(symbol, str) or len(symbol) < 2:
+            st.error("❌ Invalid stock symbol format.")
+            return
+        
         # Get company name for better news results
         from config.settings import INDIAN_STOCKS
         company_name = INDIAN_STOCKS.get(symbol, symbol)

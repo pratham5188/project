@@ -188,6 +188,9 @@ class TechnicalIndicators:
         except Exception as e:
             print(f"Error calculating technical indicators: {str(e)}")
         
+        # Clean up any infinity or NaN values
+        df = df.replace([np.inf, -np.inf], np.nan)
+        
         return df
     
     def get_trading_signals(self, data):

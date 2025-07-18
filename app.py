@@ -2354,6 +2354,15 @@ if __name__ == "__main__":
         
         with prediction_tab:
             try:
+                # Validate data quality
+                if stock_data is None or stock_data.empty:
+                    st.error("❌ No stock data available for predictions.")
+                    st.stop()
+                
+                if len(stock_data) < 30:
+                    st.warning("⚠️ Limited data available. Predictions may be less accurate.")
+                    st.info("💡 For better predictions, try selecting a longer time period.")
+                
                 # Market summary
                 current_price = stock_data['Close'].iloc[-1]
                 app.render_market_summary(stock_data, selected_symbol)
@@ -2443,20 +2452,36 @@ if __name__ == "__main__":
         with analytics_tab:
             try:
                 if stock_data is not None and not stock_data.empty:
-                    app.advanced_analytics.render_analytics_tab(stock_data, selected_symbol)
+                    # Validate data quality before passing to analytics
+                    if len(stock_data) < 10:
+                        st.warning("⚠️ Insufficient data for comprehensive analysis. Need at least 10 data points.")
+                        st.info("💡 Try selecting a longer time period or different stock.")
+                    else:
+                        app.advanced_analytics.render_analytics_tab(stock_data, selected_symbol)
                 else:
                     st.warning("⚠️ No stock data available for analytics. Please ensure data is loaded.")
                     st.info("💡 Try refreshing the page or selecting a different stock.")
             except Exception as e:
                 st.error(f"❌ Error in analytics tab: {str(e)}")
                 st.info("Please try refreshing the page or check your internet connection.")
+                st.expander("🔧 Debug Info").write(f"Error details: {type(e).__name__}: {str(e)}")
         
         with news_tab:
             try:
-                app.news_sentiment.render_news_tab(selected_symbol)
+                # Validate symbol before news analysis
+                if not selected_symbol or selected_symbol.strip() == "":
+                    st.warning("⚠️ No stock symbol selected for news analysis.")
+                    st.info("💡 Please select a stock from the sidebar.")
+                else:
+                    app.news_sentiment.render_news_tab(selected_symbol)
             except Exception as e:
                 st.error(f"❌ Error in news tab: {str(e)}")
                 st.info("Please check your internet connection and try again.")
+                # Provide fallback content
+                st.info("📰 **News analysis temporarily unavailable**")
+                st.markdown("- Market sentiment analysis requires internet connection")
+                st.markdown("- News data may be limited for some stocks")
+                st.markdown("- Try refreshing the page in a few moments")
         
         with tools_tab:
             try:

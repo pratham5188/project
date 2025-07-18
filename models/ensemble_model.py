@@ -143,8 +143,16 @@ class EnsemblePredictor:
             features = self.prepare_features(data.copy())
             clf_target, reg_target = self.create_targets(data.copy())
             
-            # Remove rows with NaN targets
-            valid_mask = ~(clf_target.isna() | reg_target.isna())
+            # Remove rows with NaN targets and infinity values
+            # Clean features first
+            features = features.replace([np.inf, -np.inf], np.nan).dropna()
+            
+            # Reindex targets to match cleaned features
+            clf_target = clf_target.reindex(features.index)
+            reg_target = reg_target.reindex(features.index)
+            
+            # Remove rows with invalid targets
+            valid_mask = ~(clf_target.isna() | reg_target.isna()) & np.isfinite(clf_target) & np.isfinite(reg_target)
             features = features[valid_mask]
             clf_target = clf_target[valid_mask]
             reg_target = reg_target[valid_mask]

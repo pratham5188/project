@@ -24,6 +24,11 @@ class PortfolioTracker:
                 'created_at': datetime.now().isoformat()
             }
     
+    def get_portfolio(self):
+        """Get current portfolio data"""
+        self.initialize_portfolio()
+        return st.session_state[self.portfolio_key]
+    
     def add_holding(self, symbol, quantity, purchase_price, purchase_date=None):
         """Add a new holding to the portfolio"""
         self.initialize_portfolio()

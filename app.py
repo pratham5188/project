@@ -831,20 +831,20 @@ class StockTrendAI:
             st.markdown("---")
             st.markdown("### 📊 Individual Model Predictions")
         
+        # Display individual model predictions horizontally in a scrollable row
+        st.markdown("""
+        <div style="overflow-x: auto; white-space: nowrap; padding-bottom: 1rem;">
+        """, unsafe_allow_html=True)
         for i, (model_name, pred_data) in enumerate(predictions.items()):
             direction = pred_data['direction']
             confidence = pred_data['confidence']
             predicted_price = pred_data.get('predicted_price', current_price)
-            
-            # Determine colors and icons
             if direction == 'UP':
                 color_class = "prediction-card-up"
                 arrow = "⬆️"
             else:
                 color_class = "prediction-card-down"
                 arrow = "⬇️"
-            
-            # Model-specific icons
             model_icons = {
                 'XGBoost': '🚀',
                 'LSTM': '🧠',
@@ -855,17 +855,12 @@ class StockTrendAI:
                 'Stacking': '🏆'
             }
             icon = model_icons.get(model_name, '🤖')
-            
-            # Calculate price change
             price_change = predicted_price - current_price
             change_percent = (price_change / current_price) * 100
-            
-            # Generate confidence indicator
             confidence_indicator = self.get_confidence_indicator(confidence)
             confidence_color = self.get_confidence_color(confidence)
-            
             st.markdown(f"""
-            <div class="prediction-card {color_class}">
+            <div class="prediction-card {color_class}" style="display: inline-block; vertical-align: top; min-width: 320px; max-width: 340px; margin-right: 16px;">
                 <div class="model-name">{icon} {model_name}</div>
                 <div class="prediction-direction">{arrow} {direction}</div>
                 <div class="confidence" style="color: {confidence_color}">
@@ -883,6 +878,7 @@ class StockTrendAI:
                 </div>
             </div>
             """, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
     
     def get_confidence_indicator(self, confidence):
         """Get confidence indicator icon and text"""

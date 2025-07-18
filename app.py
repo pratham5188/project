@@ -831,54 +831,56 @@ class StockTrendAI:
             st.markdown("---")
             st.markdown("### 📊 Individual Model Predictions")
         
-        # Display individual model predictions horizontally in a scrollable row
-        st.markdown("""
-        <div style="overflow-x: auto; white-space: nowrap; padding-bottom: 1rem;">
-        """, unsafe_allow_html=True)
-        for i, (model_name, pred_data) in enumerate(predictions.items()):
-            direction = pred_data['direction']
-            confidence = pred_data['confidence']
-            predicted_price = pred_data.get('predicted_price', current_price)
-            if direction == 'UP':
-                color_class = "prediction-card-up"
-                arrow = "⬆️"
-            else:
-                color_class = "prediction-card-down"
-                arrow = "⬇️"
-            model_icons = {
-                'XGBoost': '🚀',
-                'LSTM': '🧠',
-                'Prophet': '📈',
-                'Ensemble': '🎯',
-                'Transformer': '⚡',
-                'GRU': '🔥',
-                'Stacking': '🏆'
-            }
-            icon = model_icons.get(model_name, '🤖')
-            price_change = predicted_price - current_price
-            change_percent = (price_change / current_price) * 100
-            confidence_indicator = self.get_confidence_indicator(confidence)
-            confidence_color = self.get_confidence_color(confidence)
-            st.markdown(f"""
-            <div class="prediction-card {color_class}" style="display: inline-block; vertical-align: top; min-width: 320px; max-width: 340px; margin-right: 16px;">
-                <div class="model-name">{icon} {model_name}</div>
-                <div class="prediction-direction">{arrow} {direction}</div>
-                <div class="confidence" style="color: {confidence_color}">
-                    {confidence_indicator} Confidence: {confidence:.1f}%
-                    <span class="confidence-bar">
-                        <span class="confidence-fill" style="width: {confidence}%; background-color: {confidence_color}"></span>
-                    </span>
-                </div>
-                <div class="price-prediction">
-                    <div class="current-price">Current: ₹{current_price:.2f}</div>
-                    <div class="predicted-price">Predicted: ₹{predicted_price:.2f}</div>
-                    <div class="price-change">
-                        Change: {price_change:+.2f} ({change_percent:+.2f}%)
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        # Display individual model predictions in horizontal pairs (2 per row)
+        pred_items = list(predictions.items())
+        for i in range(0, len(pred_items), 2):
+            cols = st.columns(2)
+            for j in range(2):
+                if i + j < len(pred_items):
+                    model_name, pred_data = pred_items[i + j]
+                    direction = pred_data['direction']
+                    confidence = pred_data['confidence']
+                    predicted_price = pred_data.get('predicted_price', current_price)
+                    if direction == 'UP':
+                        color_class = "prediction-card-up"
+                        arrow = "⬆️"
+                    else:
+                        color_class = "prediction-card-down"
+                        arrow = "⬇️"
+                    model_icons = {
+                        'XGBoost': '🚀',
+                        'LSTM': '🧠',
+                        'Prophet': '📈',
+                        'Ensemble': '🎯',
+                        'Transformer': '⚡',
+                        'GRU': '🔥',
+                        'Stacking': '🏆'
+                    }
+                    icon = model_icons.get(model_name, '🤖')
+                    price_change = predicted_price - current_price
+                    change_percent = (price_change / current_price) * 100
+                    confidence_indicator = self.get_confidence_indicator(confidence)
+                    confidence_color = self.get_confidence_color(confidence)
+                    with cols[j]:
+                        st.markdown(f"""
+                        <div class="prediction-card {color_class}" style="min-width: 320px; max-width: 340px; margin-bottom: 16px;">
+                            <div class="model-name">{icon} {model_name}</div>
+                            <div class="prediction-direction">{arrow} {direction}</div>
+                            <div class="confidence" style="color: {confidence_color}">
+                                {confidence_indicator} Confidence: {confidence:.1f}%
+                                <span class="confidence-bar">
+                                    <span class="confidence-fill" style="width: {confidence}%; background-color: {confidence_color}"></span>
+                                </span>
+                            </div>
+                            <div class="price-prediction">
+                                <div class="current-price">Current: ₹{current_price:.2f}</div>
+                                <div class="predicted-price">Predicted: ₹{predicted_price:.2f}</div>
+                                <div class="price-change">
+                                    Change: {price_change:+.2f} ({change_percent:+.2f}%)
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
     
     def get_confidence_indicator(self, confidence):
         """Get confidence indicator icon and text"""

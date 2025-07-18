@@ -146,6 +146,24 @@ class StockTrendAI:
                 <p style="color: #ffffff; font-size: 0.8rem; margin: 0;">Click above to expand</p>
             </div>
             """, unsafe_allow_html=True)
+            
+            # Show current selection info even when collapsed
+            current_stock = st.session_state.get('selected_stock', DEFAULT_STOCK)
+            current_period = st.session_state.get('selected_period', '1y')
+            st.sidebar.markdown(f"""
+            <div style="
+                background: rgba(0,255,136,0.1);
+                padding: 0.8rem;
+                border-radius: 8px;
+                margin-top: 1rem;
+                border: 1px solid rgba(0,255,136,0.3);
+            ">
+                <div style="color: #00ff88; font-weight: bold; margin-bottom: 0.5rem;">📊 Current Selection</div>
+                <div style="color: white; font-size: 0.9rem;">Stock: {current_stock}</div>
+                <div style="color: white; font-size: 0.9rem;">Period: {current_period}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
             # Return default values when collapsed
             return (st.session_state.get('selected_stock', DEFAULT_STOCK),
                    st.session_state.get('selected_period', '1y'),
@@ -1896,13 +1914,13 @@ class StockTrendAI:
                     gridcolor='rgba(255,255,255,0.1)',
                     linecolor='rgba(255,255,255,0.2)',
                     tickfont=dict(color='white'),
-                    titlefont=dict(color='white')
+                    title_font=dict(color='white')
                 )
                 fig.update_yaxes(
                     gridcolor='rgba(255,255,255,0.1)',
                     linecolor='rgba(255,255,255,0.2)',
                     tickfont=dict(color='white'),
-                    titlefont=dict(color='white')
+                    title_font=dict(color='white')
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
@@ -2242,13 +2260,13 @@ class StockTrendAI:
                 gridcolor='rgba(255,255,255,0.1)',
                 linecolor='rgba(255,255,255,0.2)',
                 tickfont=dict(color='white'),
-                titlefont=dict(color='white')
+                title_font=dict(color='white')
             )
             fig.update_yaxes(
                 gridcolor='rgba(255,255,255,0.1)',
                 linecolor='rgba(255,255,255,0.2)',
                 tickfont=dict(color='white'),
-                titlefont=dict(color='white')
+                title_font=dict(color='white')
             )
             
             # Display the chart
@@ -2297,10 +2315,12 @@ if __name__ == "__main__":
         # Render sidebar and get configuration
         sidebar_result = app.render_sidebar()
         
-        # Handle the case where sidebar returns None (when collapsed)
+        # Sidebar always returns values now, even when collapsed
         if sidebar_result is None:
+            # This should not happen anymore, but just in case
             st.info("📱 Control panel is hidden. Click 'Show Settings' to configure options.")
-            st.stop()
+            # Use default values
+            sidebar_result = (DEFAULT_STOCK, '1y', True, True, True, True, True, True, True, False)
         
         # Unpack sidebar results safely
         (selected_symbol, period, use_xgboost, use_lstm, use_prophet, 

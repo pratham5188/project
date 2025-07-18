@@ -289,3 +289,156 @@ class PortfolioTracker:
                 alert for alert in st.session_state[self.alerts_key] 
                 if alert['id'] != alert_id
             ]
+    
+    def render_portfolio_tab(self):
+        """Render the complete portfolio management interface"""
+        st.markdown("# 💼 Portfolio Tracker")
+        
+        # Initialize portfolio
+        self.initialize_portfolio()
+        
+        # Create three columns for layout
+        col1, col2, col3 = st.columns([2, 2, 1])
+        
+        with col1:
+            st.markdown("### 📊 Portfolio Overview")
+            
+            portfolio = st.session_state[self.portfolio_key]
+            holdings = portfolio.get('holdings', [])
+            
+            if holdings:
+                # Update portfolio with current prices
+                try:
+                    from .data_fetcher import DataFetcher
+                    data_fetcher = DataFetcher()
+                    self.update_portfolio_prices(data_fetcher)
+                    self.update_portfolio_summary()
+                except Exception as e:
+                    st.warning(f"⚠️ Could not update current prices: {str(e)}")
+                
+                # Display portfolio metrics
+                total_invested = portfolio.get('total_invested', 0)
+                current_value = portfolio.get('current_value', 0)
+                profit_loss = portfolio.get('profit_loss', 0)
+                
+                # Metrics display
+                metric_col1, metric_col2, metric_col3 = st.columns(3)
+                with metric_col1:
+                    st.metric("💰 Total Invested", f"₹{total_invested:,.2f}")
+                with metric_col2:
+                    st.metric("📈 Current Value", f"₹{current_value:,.2f}")
+                with metric_col3:
+                    profit_loss_percent = (profit_loss / total_invested * 100) if total_invested > 0 else 0
+                    st.metric("📊 P&L", f"₹{profit_loss:,.2f}", f"{profit_loss_percent:+.2f}%")
+                
+                # Holdings table
+                st.markdown("### 📋 Holdings")
+                holdings_data = []
+                for holding in holdings:
+                    holdings_data.append({
+                        'Symbol': holding['symbol'],
+                        'Quantity': holding['quantity'],
+                        'Purchase Price': f"₹{holding['purchase_price']:.2f}",
+                        'Current Price': f"₹{holding['current_price']:.2f}",
+                        'P&L': f"₹{holding['profit_loss']:.2f}",
+                        'P&L %': f"{holding['profit_loss_percent']:+.2f}%"
+                    })
+                
+                import pandas as pd
+                df = pd.DataFrame(holdings_data)
+                st.dataframe(df, use_container_width=True)
+                
+            else:
+                st.info("📝 No holdings found. Add your first stock below!")
+        
+        with col2:
+            st.markdown("### ➕ Add New Holding")
+            
+            with st.form("add_holding_form"):
+                symbol_input = st.text_input("Stock Symbol (e.g., RELIANCE.NS)")
+                quantity_input = st.number_input("Quantity", min_value=1, value=1)
+                price_input = st.number_input("Purchase Price (₹)", min_value=0.01, value=100.0, step=0.01)
+                purchase_date = st.date_input("Purchase Date")
+                
+                if st.form_submit_button("🚀 Add Holding"):
+                    if symbol_input:
+                        try:
+                            self.add_holding(
+                                symbol_input.upper(),
+                                quantity_input,
+                                price_input,
+                                purchase_date.isoformat()
+                            )
+                            st.success(f"✅ Added {quantity_input} shares of {symbol_input} to portfolio!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Error adding holding: {str(e)}")
+                    else:
+                        st.error("Please enter a stock symbol")
+        
+        with col3:
+            st.markdown("### 🗑️ Manage Holdings")
+            
+            holdings = st.session_state[self.portfolio_key].get('holdings', [])
+            if holdings:
+                # Remove holding
+                holding_options = [f"{h['symbol']} ({h['quantity']} shares)" for h in holdings]
+                selected_holding = st.selectbox("Select holding to remove", holding_options)
+                
+                if st.button("🗑️ Remove", type="secondary"):
+                    if selected_holding:
+                        index = holding_options.index(selected_holding)
+                        self.remove_holding(index)
+                        st.success("✅ Holding removed!")
+                        st.rerun()
+            else:
+                st.info("No holdings to manage")
+        
+        # Watchlist section
+        st.markdown("---")
+        st.markdown("### 👁️ Watchlist")
+        
+        watchlist_col1, watchlist_col2 = st.columns([2, 1])
+        
+        with watchlist_col1:
+            watchlist = self.get_watchlist()
+            if watchlist:
+                watchlist_symbols = [item['symbol'] for item in watchlist]
+                st.info(f"📊 Watching: {', '.join(watchlist_symbols)}")
+            else:
+                st.info("📝 No stocks in watchlist")
+        
+        with watchlist_col2:
+            with st.form("add_watchlist_form"):
+                watch_symbol = st.text_input("Add to Watchlist")
+                if st.form_submit_button("👁️ Watch"):
+                    if watch_symbol:
+                        self.add_to_watchlist(watch_symbol.upper(), watch_symbol.upper())
+                        st.success(f"✅ Added {watch_symbol} to watchlist!")
+                        st.rerun()
+        
+        # Price alerts section
+        st.markdown("### 🚨 Price Alerts")
+        
+        alert_col1, alert_col2 = st.columns([2, 1])
+        
+        with alert_col1:
+            active_alerts = self.get_active_alerts()
+            if active_alerts:
+                for alert in active_alerts:
+                    direction = "above" if alert['alert_type'] == 'above' else "below"
+                    st.info(f"🚨 {alert['symbol']}: Alert when price goes {direction} ₹{alert['target_price']:.2f}")
+            else:
+                st.info("📝 No active alerts")
+        
+        with alert_col2:
+            with st.form("add_alert_form"):
+                alert_symbol = st.text_input("Symbol for Alert")
+                target_price = st.number_input("Target Price (₹)", min_value=0.01, value=100.0)
+                alert_type = st.selectbox("Alert Type", ["above", "below"])
+                
+                if st.form_submit_button("🚨 Set Alert"):
+                    if alert_symbol:
+                        self.add_price_alert(alert_symbol.upper(), target_price, alert_type)
+                        st.success(f"✅ Alert set for {alert_symbol}!")
+                        st.rerun()

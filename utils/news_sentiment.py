@@ -297,25 +297,244 @@ class NewsSentimentAnalyzer:
         return min(impact_score, 100)  # Cap at 100
     
     def get_sentiment_signals(self, sentiment_data):
-        """Generate trading signals based on sentiment analysis"""
-        if not sentiment_data:
-            return {'signal': 'HOLD', 'strength': 0, 'reason': 'No data available'}
+        """Generate trading signals based on sentiment"""
+        try:
+            signals = []
+            
+            avg_sentiment = sentiment_data.get('average_sentiment', 0)
+            confidence = sentiment_data.get('confidence', 0)
+            
+            if avg_sentiment > 0.3 and confidence > 0.7:
+                signals.append({
+                    'signal': 'BUY',
+                    'strength': 'Strong',
+                    'reason': 'Very positive sentiment with high confidence'
+                })
+            elif avg_sentiment > 0.1 and confidence > 0.5:
+                signals.append({
+                    'signal': 'BUY',
+                    'strength': 'Moderate',
+                    'reason': 'Positive sentiment detected'
+                })
+            elif avg_sentiment < -0.3 and confidence > 0.7:
+                signals.append({
+                    'signal': 'SELL',
+                    'strength': 'Strong',
+                    'reason': 'Very negative sentiment with high confidence'
+                })
+            elif avg_sentiment < -0.1 and confidence > 0.5:
+                signals.append({
+                    'signal': 'SELL',
+                    'strength': 'Moderate',
+                    'reason': 'Negative sentiment detected'
+                })
+            else:
+                signals.append({
+                    'signal': 'HOLD',
+                    'strength': 'Neutral',
+                    'reason': 'Mixed or neutral sentiment'
+                })
+            
+            return signals
+            
+        except Exception as e:
+            print(f"Error generating sentiment signals: {str(e)}")
+            return []
+    
+    def render_news_tab(self, symbol):
+        """Render the complete news and sentiment analysis interface"""
+        st.markdown("# 📰 News & Sentiment Analysis")
         
-        overall_sentiment = sentiment_data.get('overall_sentiment', 0)
-        news_count = sentiment_data.get('news_count', 0)
+        # Get company name for better news results
+        from config.settings import INDIAN_STOCKS
+        company_name = INDIAN_STOCKS.get(symbol, symbol)
         
-        # Signal generation logic
-        if overall_sentiment > 0.3 and news_count >= 3:
-            return {'signal': 'BUY', 'strength': 90, 'reason': 'Strong positive sentiment with good news volume'}
-        elif overall_sentiment > 0.2:
-            return {'signal': 'BUY', 'strength': 70, 'reason': 'Positive sentiment detected'}
-        elif overall_sentiment > 0.1:
-            return {'signal': 'HOLD', 'strength': 60, 'reason': 'Mildly positive sentiment'}
-        elif overall_sentiment < -0.3 and news_count >= 3:
-            return {'signal': 'SELL', 'strength': 90, 'reason': 'Strong negative sentiment with concerning news volume'}
-        elif overall_sentiment < -0.2:
-            return {'signal': 'SELL', 'strength': 70, 'reason': 'Negative sentiment detected'}
-        elif overall_sentiment < -0.1:
-            return {'signal': 'HOLD', 'strength': 40, 'reason': 'Mildly negative sentiment'}
+        try:
+            # News and sentiment analysis
+            st.markdown(f"### 📰 Latest News for {company_name} ({symbol})")
+            
+            with st.spinner("🔍 Fetching latest news and analyzing sentiment..."):
+                # Get news and sentiment
+                news_sentiment = self.get_news_sentiment(symbol, company_name)
+                
+                if news_sentiment and news_sentiment.get('news_items'):
+                    # Display sentiment overview
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        avg_sentiment = news_sentiment.get('average_sentiment', 0)
+                        sentiment_label = self._get_sentiment_label(avg_sentiment)
+                        sentiment_color = self._get_sentiment_color(avg_sentiment)
+                        st.metric("📊 Overall Sentiment", sentiment_label, delta=f"{avg_sentiment:.3f}")
+                    
+                    with col2:
+                        confidence = news_sentiment.get('confidence', 0)
+                        st.metric("🎯 Confidence", f"{confidence:.1%}")
+                    
+                    with col3:
+                        news_count = len(news_sentiment.get('news_items', []))
+                        st.metric("📄 News Articles", news_count)
+                    
+                    # Sentiment signals
+                    st.markdown("### 🚦 Trading Signals Based on Sentiment")
+                    signals = self.get_sentiment_signals(news_sentiment)
+                    
+                    for signal in signals:
+                        signal_color = {
+                            'BUY': '🟢',
+                            'SELL': '🔴', 
+                            'HOLD': '🟡'
+                        }.get(signal['signal'], '⚪')
+                        
+                        st.info(f"{signal_color} **{signal['signal']}** ({signal['strength']}) - {signal['reason']}")
+                    
+                    # News articles display
+                    st.markdown("### 📰 Recent News Articles")
+                    
+                    for i, article in enumerate(news_sentiment['news_items'][:10], 1):
+                        with st.expander(f"📄 Article {i}: {article['title'][:80]}..."):
+                            col1, col2 = st.columns([3, 1])
+                            
+                            with col1:
+                                st.markdown(f"**Title:** {article['title']}")
+                                st.markdown(f"**Summary:** {article['content'][:300]}...")
+                                st.markdown(f"**Source:** {article['source']}")
+                                st.markdown(f"**Published:** {article['published_date']}")
+                            
+                            with col2:
+                                sentiment_score = article.get('sentiment_score', 0)
+                                sentiment_label = self._get_sentiment_label(sentiment_score)
+                                sentiment_emoji = self._get_sentiment_emoji(sentiment_score)
+                                
+                                st.markdown(f"**Sentiment:** {sentiment_emoji}")
+                                st.markdown(f"**Score:** {sentiment_score:.3f}")
+                                st.markdown(f"**Label:** {sentiment_label}")
+                    
+                    # Sentiment distribution chart
+                    st.markdown("### 📊 Sentiment Distribution")
+                    self._render_sentiment_chart(news_sentiment)
+                    
+                else:
+                    st.warning("⚠️ No recent news found for this stock.")
+                    st.info("💡 Try checking back later or verify the stock symbol is correct.")
+            
+            # Market sentiment analysis
+            st.markdown("---")
+            st.markdown("### 🌍 Market Sentiment Overview")
+            
+            with st.spinner("🔍 Analyzing broader market sentiment..."):
+                # Get market sentiment for related stocks
+                try:
+                    related_symbols = [symbol]  # Could expand this to include sector stocks
+                    market_sentiment = self.get_market_sentiment(related_symbols)
+                    
+                    if market_sentiment:
+                        st.markdown("#### 📈 Market Sentiment Summary")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            market_score = market_sentiment.get('overall_sentiment', 0)
+                            market_label = self._get_sentiment_label(market_score)
+                            st.metric("🌍 Market Sentiment", market_label, delta=f"{market_score:.3f}")
+                        
+                        with col2:
+                            trend = market_sentiment.get('trend', 'Neutral')
+                            trend_emoji = "📈" if trend == "Positive" else "📉" if trend == "Negative" else "➡️"
+                            st.metric("📊 Trend Direction", f"{trend_emoji} {trend}")
+                        
+                        # Trending topics
+                        trending = self.get_trending_topics(news_sentiment.get('news_items', []))
+                        if trending:
+                            st.markdown("#### 🔥 Trending Topics")
+                            for topic, frequency in trending.items():
+                                st.info(f"🏷️ **{topic}**: Mentioned {frequency} times")
+                
+                except Exception as e:
+                    st.warning(f"⚠️ Could not fetch market sentiment: {str(e)}")
+            
+        except Exception as e:
+            st.error(f"❌ Error in news analysis: {str(e)}")
+            st.info("Please try refreshing or check your internet connection.")
+    
+    def _get_sentiment_label(self, score):
+        """Convert sentiment score to label"""
+        if score > 0.3:
+            return "Very Positive"
+        elif score > 0.1:
+            return "Positive"
+        elif score > -0.1:
+            return "Neutral"
+        elif score > -0.3:
+            return "Negative"
         else:
-            return {'signal': 'HOLD', 'strength': 50, 'reason': 'Neutral sentiment'}
+            return "Very Negative"
+    
+    def _get_sentiment_color(self, score):
+        """Get color for sentiment score"""
+        if score > 0.1:
+            return "green"
+        elif score < -0.1:
+            return "red"
+        else:
+            return "gray"
+    
+    def _get_sentiment_emoji(self, score):
+        """Get emoji for sentiment score"""
+        if score > 0.3:
+            return "😄 Very Positive"
+        elif score > 0.1:
+            return "🙂 Positive"
+        elif score > -0.1:
+            return "😐 Neutral"
+        elif score > -0.3:
+            return "🙁 Negative"
+        else:
+            return "😞 Very Negative"
+    
+    def _render_sentiment_chart(self, news_sentiment):
+        """Render sentiment distribution chart"""
+        try:
+            import plotly.graph_objects as go
+            
+            news_items = news_sentiment.get('news_items', [])
+            if not news_items:
+                return
+            
+            # Count sentiment categories
+            sentiment_counts = {
+                'Very Positive': 0,
+                'Positive': 0,
+                'Neutral': 0,
+                'Negative': 0,
+                'Very Negative': 0
+            }
+            
+            for article in news_items:
+                score = article.get('sentiment_score', 0)
+                label = self._get_sentiment_label(score)
+                sentiment_counts[label] += 1
+            
+            # Create pie chart
+            fig = go.Figure(data=[go.Pie(
+                labels=list(sentiment_counts.keys()),
+                values=list(sentiment_counts.values()),
+                hole=0.3,
+                marker_colors=['#00ff88', '#90EE90', '#FFD700', '#FFA500', '#ff0044']
+            )])
+            
+            fig.update_layout(
+                title=dict(
+                    text="News Sentiment Distribution",
+                    font=dict(color='white', size=16)
+                ),
+                template="plotly_dark",
+                paper_bgcolor='black',
+                plot_bgcolor='black',
+                font=dict(color='white'),
+                height=400
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+        except Exception as e:
+            st.warning(f"⚠️ Could not render sentiment chart: {str(e)}")

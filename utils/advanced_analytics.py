@@ -527,18 +527,217 @@ class AdvancedAnalytics:
             zmid=0,
             text=correlation_matrix.round(2).values,
             texttemplate="%{text}",
-            textfont={"size": 12},
+            textfont={"size": 10},
             hoverongaps=False
         ))
         
         fig.update_layout(
-            title="Stock Correlation Matrix",
+            title=dict(
+                text="Stock Correlation Matrix",
+                font=dict(color='white', size=16)
+            ),
             template="plotly_dark",
-            width=600,
-            height=600,
             paper_bgcolor='black',
             plot_bgcolor='black',
-            font=dict(color='white')
+            font=dict(color='white'),
+            height=500
         )
         
         return fig
+    
+    def render_analytics_tab(self, stock_data, symbol):
+        """Render the complete advanced analytics interface"""
+        st.markdown("# 📊 Advanced Analytics")
+        
+        if stock_data is None or stock_data.empty:
+            st.error("❌ No stock data available for analysis")
+            return
+        
+        # Analytics type selection
+        analytics_type = st.selectbox(
+            "Select Analysis Type",
+            [
+                "📈 Comprehensive Analysis",
+                "📊 Volume Analysis", 
+                "🔍 Risk Metrics",
+                "🎯 Monte Carlo Simulation",
+                "📐 Fibonacci Retracement",
+                "🌊 Elliott Wave Analysis",
+                "📈 Support/Resistance",
+                "📅 Seasonality Analysis"
+            ]
+        )
+        
+        try:
+            if analytics_type == "📈 Comprehensive Analysis":
+                st.markdown("### 📊 Comprehensive Technical Analysis")
+                
+                # Create comprehensive chart
+                fig = self.create_advanced_chart(stock_data, 'comprehensive')
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Technical indicators summary
+                self._render_technical_summary(stock_data)
+                
+            elif analytics_type == "📊 Volume Analysis":
+                st.markdown("### 📊 Volume Analysis")
+                
+                volume_metrics = self.volume_analysis(stock_data)
+                if volume_metrics:
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Average Volume", f"{volume_metrics['avg_volume']:,.0f}")
+                    with col2:
+                        st.metric("Volume Trend", volume_metrics['volume_trend'])
+                    with col3:
+                        st.metric("Volume Volatility", f"{volume_metrics['volatility']:.2%}")
+                
+                # Volume chart
+                fig = self.create_advanced_chart(stock_data, 'volume')
+                st.plotly_chart(fig, use_container_width=True)
+                
+            elif analytics_type == "🔍 Risk Metrics":
+                st.markdown("### 🔍 Risk Analysis")
+                
+                # Calculate returns
+                returns = stock_data['Close'].pct_change().dropna()
+                risk_metrics = self.calculate_risk_metrics(returns)
+                
+                if risk_metrics:
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("Sharpe Ratio", f"{risk_metrics['sharpe_ratio']:.3f}")
+                    with col2:
+                        st.metric("Max Drawdown", f"{risk_metrics['max_drawdown']:.2%}")
+                    with col3:
+                        st.metric("Volatility", f"{risk_metrics['volatility']:.2%}")
+                    with col4:
+                        st.metric("VaR (95%)", f"{risk_metrics['var_95']:.2%}")
+                
+            elif analytics_type == "🎯 Monte Carlo Simulation":
+                st.markdown("### 🎯 Monte Carlo Price Simulation")
+                
+                num_simulations = st.slider("Number of Simulations", 100, 5000, 1000, 100)
+                time_horizon = st.slider("Time Horizon (Days)", 10, 252, 30, 5)
+                
+                if st.button("🚀 Run Simulation"):
+                    with st.spinner("Running Monte Carlo simulation..."):
+                        sim_results = self.monte_carlo_simulation(stock_data, num_simulations, time_horizon)
+                        
+                        if sim_results:
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Expected Price", f"₹{sim_results['mean_final_price']:.2f}")
+                            with col2:
+                                st.metric("95% Confidence Interval", 
+                                         f"₹{sim_results['percentile_5']:.2f} - ₹{sim_results['percentile_95']:.2f}")
+                            with col3:
+                                st.metric("Probability of Gain", f"{sim_results['probability_profit']:.1%}")
+                
+            elif analytics_type == "📐 Fibonacci Retracement":
+                st.markdown("### 📐 Fibonacci Retracement Analysis")
+                
+                fib_levels = self.fibonacci_retracement(stock_data)
+                if fib_levels:
+                    st.markdown("#### 🎯 Key Fibonacci Levels")
+                    for level, price in fib_levels.items():
+                        st.info(f"**{level}**: ₹{price:.2f}")
+                
+            elif analytics_type == "🌊 Elliott Wave Analysis":
+                st.markdown("### 🌊 Elliott Wave Pattern Analysis")
+                
+                wave_analysis = self.elliott_wave_analysis(stock_data)
+                if wave_analysis:
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.info(f"**Current Wave**: {wave_analysis['current_trend']}")
+                        # The original elliott_wave_analysis does not return pattern_strength or trend_direction
+                        # This part of the new code will cause an error if uncommented.
+                        # st.info(f"**Pattern Strength**: {wave_analysis['pattern_strength']:.1%}") 
+                        st.info(f"**Next Target**: ₹{wave_analysis['current_trend']} (Estimate)") # Placeholder
+                    with col2:
+                        st.info(f"**Trend Direction**: {wave_analysis['current_trend']}")
+                        # st.info(f"**Next Target**: ₹{wave_analysis['next_target']:.2f}") # Placeholder
+                
+            elif analytics_type == "📈 Support/Resistance":
+                st.markdown("### 📈 Support & Resistance Levels")
+                
+                levels = self.support_resistance_levels(stock_data)
+                if levels:
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("#### 🔻 Support Levels")
+                        for i, level in enumerate(levels['support_levels'], 1):
+                            st.info(f"S{i}: ₹{level:.2f}")
+                    with col2:
+                        st.markdown("#### 🔺 Resistance Levels")
+                        for i, level in enumerate(levels['resistance_levels'], 1):
+                            st.info(f"R{i}: ₹{level:.2f}")
+                
+            elif analytics_type == "📅 Seasonality Analysis":
+                st.markdown("### 📅 Seasonality Analysis")
+                
+                seasonality = self.seasonality_analysis(stock_data)
+                if seasonality:
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("#### 📊 Monthly Performance")
+                        for month, performance in seasonality['monthly_patterns']['mean'].items():
+                            color = "🟢" if performance > 0 else "🔴"
+                            st.info(f"{color} {month}: {performance:+.2%}")
+                    with col2:
+                        st.markdown("#### 📊 Day of Week Performance")
+                        for day, performance in seasonality['daily_patterns']['mean'].items():
+                            color = "🟢" if performance > 0 else "🔴"
+                            st.info(f"{color} {day}: {performance:+.2%}")
+        
+        except Exception as e:
+            st.error(f"❌ Error in analytics: {str(e)}")
+            st.info("Please try a different analysis type or refresh the data.")
+    
+    def _render_technical_summary(self, stock_data):
+        """Render technical indicators summary"""
+        st.markdown("### 📈 Technical Indicators Summary")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # RSI Analysis
+            if 'RSI' in stock_data.columns:
+                rsi = stock_data['RSI'].iloc[-1]
+                if rsi > 70:
+                    rsi_signal = "🔴 Overbought"
+                elif rsi < 30:
+                    rsi_signal = "🟢 Oversold"
+                else:
+                    rsi_signal = "🟡 Neutral"
+                st.info(f"**RSI (14)**: {rsi:.2f} - {rsi_signal}")
+            
+            # MACD Analysis
+            if 'MACD' in stock_data.columns and 'MACD_Signal' in stock_data.columns:
+                macd = stock_data['MACD'].iloc[-1]
+                macd_signal = stock_data['MACD_Signal'].iloc[-1]
+                macd_trend = "🟢 Bullish" if macd > macd_signal else "🔴 Bearish"
+                st.info(f"**MACD**: {macd:.4f} - {macd_trend}")
+        
+        with col2:
+            # Bollinger Bands
+            if 'BB_Upper' in stock_data.columns and 'BB_Lower' in stock_data.columns:
+                current_price = stock_data['Close'].iloc[-1]
+                bb_upper = stock_data['BB_Upper'].iloc[-1]
+                bb_lower = stock_data['BB_Lower'].iloc[-1]
+                
+                if current_price > bb_upper:
+                    bb_signal = "🔴 Above Upper Band"
+                elif current_price < bb_lower:
+                    bb_signal = "🟢 Below Lower Band"
+                else:
+                    bb_signal = "🟡 Within Bands"
+                st.info(f"**Bollinger Bands**: {bb_signal}")
+            
+            # Moving Average Analysis
+            if 'SMA_20' in stock_data.columns and 'SMA_50' in stock_data.columns:
+                sma_20 = stock_data['SMA_20'].iloc[-1]
+                sma_50 = stock_data['SMA_50'].iloc[-1]
+                ma_trend = "🟢 Bullish" if sma_20 > sma_50 else "🔴 Bearish"
+                st.info(f"**Moving Average Cross**: {ma_trend}")

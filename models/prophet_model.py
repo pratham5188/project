@@ -22,7 +22,7 @@ class ProphetPredictor:
     def prepare_prophet_data(self, data):
         """Prepare data in Prophet format (ds, y)"""
         prophet_data = pd.DataFrame()
-        prophet_data['ds'] = data.index
+        prophet_data['ds'] = pd.to_datetime(data.index).tz_localize(None)  # Remove timezone
         prophet_data['y'] = data['Close'].values
         
         # Add additional regressors
@@ -33,6 +33,10 @@ class ProphetPredictor:
         if 'MACD' in data.columns:
             prophet_data['macd'] = data['MACD'].values
             
+        # Remove inf, -inf, NaN, and very large values
+        prophet_data = prophet_data.replace([np.inf, -np.inf], np.nan)
+        prophet_data = prophet_data.dropna()
+        prophet_data = prophet_data[(np.abs(prophet_data['y']) < 1e10)]
         return prophet_data
     
     def train(self, data):

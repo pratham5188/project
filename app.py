@@ -1398,7 +1398,9 @@ class StockTrendAI:
                             "LSTM": "✅ Ready",
                             "Prophet": "✅ Ready",
                             "Ensemble": "✅ Ready",
-                            "Transformer": "✅ Ready"
+                            "Transformer": "✅ Ready",
+                            "GRU": "✅ Ready",
+                            "Stacking": "✅ Ready"
                         }
                         for model, status in model_status.items():
                             st.markdown(f"**{model}:** {status}")
@@ -2383,7 +2385,9 @@ class StockTrendAI:
                     "LSTM": "✅ Ready",
                     "Prophet": "✅ Ready",
                     "Ensemble": "✅ Ready",
-                    "Transformer": "✅ Ready"
+                    "Transformer": "✅ Ready",
+                    "GRU": "✅ Ready",
+                    "Stacking": "✅ Ready"
                 }
                 for model, status in model_status.items():
                     st.markdown(f"**{model}:** {status}")

@@ -1230,7 +1230,7 @@ class StockTrendAI:
         
         with tab1:
             st.info("🟢 You are in the AI Predictions tab.")
-            # --- Market Real-Time Status, Open/Close, and Date ---
+            # --- Market Real-Time Status, Open/Close, and Date (Horizontal Box) ---
             import pytz
             from datetime import datetime
             ist = pytz.timezone('Asia/Kolkata')
@@ -1241,14 +1241,15 @@ class StockTrendAI:
             status_color = "#00ff88" if status_open else "#ff0044"
             status_dot = "🟢" if status_open else "🔴"
             open_close_label = "Market Open" if status_open else "Market Closed"
-            st.markdown(f"""
-            <div style='display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: flex-start; margin-bottom: 18px; background: #181818; border-radius: 12px; padding: 20px 28px; border: 2px solid {status_color}; box-shadow: 0 0 12px {status_color}33;'>
-                <div style='font-size: 1.25rem; color: #fff;'><b>📅 Date:</b> {current_date}</div>
-                <div style='font-size: 1.25rem; color: #fff;'><b>⏰ Time:</b> {market_info['current_time']}</div>
-                <div style='font-size: 1.25rem; color: #fff;'><b>🕒 Market Hours:</b> {market_info['market_hours']}</div>
-                <div style='font-size: 1.25rem; display: flex; align-items: center;'><span style="font-size:2rem; margin-right:8px;">{status_dot}</span> <b style='color: {status_color}; font-size: 1.25rem;'>{open_close_label}</b></div>
-            </div>
-            """, unsafe_allow_html=True)
+            col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 2])
+            with col1:
+                st.markdown(f"<div style='background:#181818; border-radius:10px; padding:12px 0; text-align:center; border:2px solid #222;'><b>📅 Date</b><br><span style='font-size:1.1rem; color:#fff'>{current_date}</span></div>", unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"<div style='background:#181818; border-radius:10px; padding:12px 0; text-align:center; border:2px solid #222;'><b>⏰ Time</b><br><span style='font-size:1.1rem; color:#fff'>{market_info['current_time']}</span></div>", unsafe_allow_html=True)
+            with col3:
+                st.markdown(f"<div style='background:#181818; border-radius:10px; padding:12px 0; text-align:center; border:2px solid #222;'><b>🕒 Market Hours</b><br><span style='font-size:1.1rem; color:#fff'>{market_info['market_hours']}</span></div>", unsafe_allow_html=True)
+            with col4:
+                st.markdown(f"<div style='background:#181818; border-radius:10px; padding:12px 0; text-align:center; border:2px solid {status_color}; box-shadow:0 0 8px {status_color}33;'><span style='font-size:2rem; margin-right:8px;'>{status_dot}</span><b style='color:{status_color}; font-size:1.1rem;'>{open_close_label}</b></div>", unsafe_allow_html=True)
             try:
                 # Render sidebar and get selections
                 selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh = self.render_sidebar()

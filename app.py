@@ -179,6 +179,19 @@ if 'stock_data' not in st.session_state:
 if 'predictions' not in st.session_state:
     st.session_state.predictions = None
 
+# Add a custom sidebar expand/collapse toggle above the StockTrendAI title
+if 'sidebar_collapsed' not in st.session_state:
+    st.session_state.sidebar_collapsed = False
+
+sidebar_toggle_label = '«' if not st.session_state.sidebar_collapsed else '»'
+if st.sidebar.button(sidebar_toggle_label, key='sidebar_toggle', help='Collapse/Expand Sidebar'):
+    st.session_state.sidebar_collapsed = not st.session_state.sidebar_collapsed
+    st.rerun()
+
+# Only render the rest of the sidebar if not collapsed
+if not st.session_state.sidebar_collapsed:
+    # ... existing sidebar content ...
+    pass
 
 class StockTrendAI:
     def __init__(self):
@@ -1231,70 +1244,74 @@ class StockTrendAI:
         with tab1:
             st.info("🟢 You are in the AI Predictions tab.")
             try:
-                # Render sidebar and get selections
-                selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh = self.render_sidebar()
-                
-                # Auto-refresh logic
-                if auto_refresh:
-                    time.sleep(30)
-                    st.rerun()
-                
-                # Load and process data
-                stock_data = self.load_and_process_data(selected_stock, period)
-                
-                if stock_data is not None and not stock_data.empty:
-                    # --- Market Real-Time Status, Open/Close, and Date ---
-                    import pytz
-                    from datetime import datetime
-                    ist = pytz.timezone('Asia/Kolkata')
-                    now = datetime.now(ist)
-                    current_date = now.strftime('%A, %d %B %Y')
-                    market_info = self.get_market_status_detailed()
-                    status_color = "green" if market_info["status"] == "OPEN" else "red"
-                    st.markdown(f"""
-                    <div style='display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: flex-start; margin-bottom: 12px; background: #181818; border-radius: 10px; padding: 16px 24px;'>
-                        <div style='font-size: 1.1rem; color: #fff;'><b>📅 Date:</b> {current_date}</div>
-                        <div style='font-size: 1.1rem; color: #fff;'><b>⏰ Time:</b> {market_info['current_time']}</div>
-                        <div style='font-size: 1.1rem; color: #fff;'><b>🕒 Market Hours:</b> {market_info['market_hours']}</div>
-                        <div style='font-size: 1.1rem;'><b>Market Status:</b> <span style='color: {status_color}; font-weight: bold;'>{market_info['status']}</span></div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Render market summary
-                    self.render_market_summary(stock_data, selected_stock)
-                    
-                    # Generate predictions
-                    predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking)
-                    
-                    # Render prediction cards with confidence meter
-                    st.markdown("### 🔮 AI Predictions for Tomorrow")
-                    current_price = stock_data['Close'].iloc[-1]
-                    self.render_prediction_cards(predictions, current_price)
-                    
-                    # Add confidence meter
-                    if predictions:
-                        self.render_confidence_meter(predictions)
-                    
-                    # Render stock chart
-                    self.render_stock_chart(stock_data, selected_stock)
-                    
-                    # Show market indices summary (with error handling)
-                    try:
-                        self.render_market_indices_summary()
-                    except Exception as e:
-                        st.warning(f"Market indices unavailable: {str(e)}")
-                    
-                    # Show top gainers and losers (with error handling)
-                    try:
-                        self.render_gainers_losers()
-                    except Exception as e:
-                        st.warning(f"Gainers/Losers data unavailable: {str(e)}")
-                    
-                    # Technical indicators summary
-                    self.render_technical_indicators_summary(stock_data, current_price)
+                # Only render sidebar and app logic if sidebar is not collapsed
+                if not st.session_state.sidebar_collapsed:
+                    # Render sidebar and get selections
+                    selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh = self.render_sidebar()
+
+                    # Auto-refresh logic
+                    if auto_refresh:
+                        time.sleep(30)
+                        st.rerun()
+
+                    # Load and process data
+                    stock_data = self.load_and_process_data(selected_stock, period)
+
+                    if stock_data is not None and not stock_data.empty:
+                        # --- Market Real-Time Status, Open/Close, and Date ---
+                        import pytz
+                        from datetime import datetime
+                        ist = pytz.timezone('Asia/Kolkata')
+                        now = datetime.now(ist)
+                        current_date = now.strftime('%A, %d %B %Y')
+                        market_info = self.get_market_status_detailed()
+                        status_color = "green" if market_info["status"] == "OPEN" else "red"
+                        st.markdown(f"""
+                        <div style='display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: flex-start; margin-bottom: 12px; background: #181818; border-radius: 10px; padding: 16px 24px;'>
+                            <div style='font-size: 1.1rem; color: #fff;'><b>📅 Date:</b> {current_date}</div>
+                            <div style='font-size: 1.1rem; color: #fff;'><b>⏰ Time:</b> {market_info['current_time']}</div>
+                            <div style='font-size: 1.1rem; color: #fff;'><b>🕒 Market Hours:</b> {market_info['market_hours']}</div>
+                            <div style='font-size: 1.1rem;'><b>Market Status:</b> <span style='color: {status_color}; font-weight: bold;'>{market_info['status']}</span></div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Render market summary
+                        self.render_market_summary(stock_data, selected_stock)
+                        
+                        # Generate predictions
+                        predictions = self.generate_predictions(stock_data, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking)
+                        
+                        # Render prediction cards with confidence meter
+                        st.markdown("### 🔮 AI Predictions for Tomorrow")
+                        current_price = stock_data['Close'].iloc[-1]
+                        self.render_prediction_cards(predictions, current_price)
+                        
+                        # Add confidence meter
+                        if predictions:
+                            self.render_confidence_meter(predictions)
+                        
+                        # Render stock chart
+                        self.render_stock_chart(stock_data, selected_stock)
+                        
+                        # Show market indices summary (with error handling)
+                        try:
+                            self.render_market_indices_summary()
+                        except Exception as e:
+                            st.warning(f"Market indices unavailable: {str(e)}")
+                        
+                        # Show top gainers and losers (with error handling)
+                        try:
+                            self.render_gainers_losers()
+                        except Exception as e:
+                            st.warning(f"Gainers/Losers data unavailable: {str(e)}")
+                        
+                        # Technical indicators summary
+                        self.render_technical_indicators_summary(stock_data, current_price)
+                    else:
+                        st.error("Unable to fetch stock data. Please try again.")
+                        st.info("Try selecting a different stock or refreshing the page.")
                 else:
-                    st.error("Unable to fetch stock data. Please try again.")
-                    st.info("Try selecting a different stock or refreshing the page.")
+                    st.sidebar.info("Sidebar is collapsed. Click '»' to expand.")
             except Exception as e:
                 st.error(f"Error in predictions tab: {str(e)}")
                 st.info("Please refresh the page and try again.")

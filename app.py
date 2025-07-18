@@ -55,6 +55,8 @@ try:
         gap: 32px !important;
         width: 100%;
         display: flex !important;
+        background: #111 !important;
+        border-radius: 8px 8px 0 0;
     }
     .stTabs [data-baseweb="tab"] {
         flex: 1 1 0;
@@ -65,6 +67,15 @@ try:
         font-size: 1.1rem;
         font-weight: 600;
         border-radius: 8px 8px 0 0;
+        background: #111 !important;
+        color: #fff !important;
+    }
+    .stTabs [data-baseweb="tab-panel"] {
+        background: #111 !important;
+    }
+    .stTabs {
+        background: #111 !important;
+        border-radius: 8px;
     }
     .prediction-card, .metric-card, .stPlotlyChart, .element-container:has(.prediction-card) {
         margin-left: auto !important;

@@ -217,16 +217,30 @@ class TransformerPredictor:
         
         # Simple attention mechanism using price momentum
         recent_changes = np.diff(recent_prices)
-        weights = np.softmax(np.abs(recent_changes))  # More weight to larger changes
+        # Calculate softmax manually (numpy doesn't have softmax)
+        changes_abs = np.abs(recent_changes)
+        exp_changes = np.exp(changes_abs - np.max(changes_abs))  # Subtract max for numerical stability
+        weights = exp_changes / np.sum(exp_changes)  # More weight to larger changes
         
-        # Weighted average of recent trends
-        weighted_trend = np.sum(weights * recent_changes[:-1]) if len(recent_changes) > 1 else 0
+        # Weighted average of recent trends (ensure arrays have same length)
+        if len(recent_changes) > 1:
+            # Weights array is one element shorter than recent_changes due to np.diff
+            min_len = min(len(weights), len(recent_changes))
+            weighted_trend = np.sum(weights[:min_len] * recent_changes[:min_len])
+        else:
+            weighted_trend = 0
         
         # Volume attention
         if 'Volume' in data.columns:
             recent_volumes = data['Volume'].tail(10).values
             volume_weights = recent_volumes / np.sum(recent_volumes)
-            volume_trend = np.sum(volume_weights * np.diff(recent_prices[-10:]))
+            price_diffs = np.diff(recent_prices[-10:])
+            # Ensure arrays have same length for volume trend calculation
+            min_vol_len = min(len(volume_weights), len(price_diffs))
+            if min_vol_len > 0:
+                volume_trend = np.sum(volume_weights[:min_vol_len] * price_diffs[:min_vol_len])
+            else:
+                volume_trend = 0
         else:
             volume_trend = 0
         
@@ -265,7 +279,8 @@ class TransformerPredictor:
             'confidence': confidence,
             'predicted_price': predicted_price,
             'model_type': 'Transformer (Attention Fallback)',
-            'attention_signal': combined_signal
+            'attention_signal': combined_signal,
+            'reasoning': f'Attention-based prediction using weighted trends (trend: {weighted_trend:.3f}, volume: {volume_trend:.3f})'
         }
     
     def predict(self, data):

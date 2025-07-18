@@ -890,5 +890,259 @@ def get_custom_css():
         color: inherit !important;
     }
     
+    /* ========== CONTROL PANEL & SIDEBAR STYLING ========== */
+    
+    /* Sidebar Background */
+    .css-1d391kg, [data-testid="stSidebar"] {
+        background-color: #000000 !important;
+        border-right: 2px solid rgba(0,255,136,0.3) !important;
+    }
+    
+    /* Sidebar Content Background */
+    .css-1d391kg .css-1outpf7, [data-testid="stSidebar"] > div {
+        background-color: #000000 !important;
+        padding: 1rem !important;
+    }
+    
+    /* Control Panel Headers */
+    .sidebar-header, .control-panel-header {
+        background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,200,100,0.1)) !important;
+        border: 1px solid rgba(0,255,136,0.4) !important;
+        border-radius: 10px !important;
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+        text-align: center !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    /* ========== DROPDOWN MENU STYLING ========== */
+    
+    /* Main dropdown container */
+    .stSelectbox > div > div {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+        color: #ffffff !important;
+    }
+    
+    /* Dropdown input field */
+    .stSelectbox input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+    
+    /* Dropdown arrow and button */
+    .stSelectbox button {
+        background-color: #000000 !important;
+        border: none !important;
+        color: #ffffff !important;
+    }
+    
+    /* Dropdown options list */
+    .stSelectbox [role="listbox"] {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Individual dropdown options */
+    .stSelectbox [role="option"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    /* Dropdown option hover */
+    .stSelectbox [role="option"]:hover {
+        background-color: rgba(0,255,136,0.2) !important;
+        color: #ffffff !important;
+    }
+    
+    /* ========== TEXT INPUT BOXES STYLING ========== */
+    
+    /* Text input containers */
+    .stTextInput > div > div > input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+        padding: 0.5rem !important;
+    }
+    
+    /* Text input focus state */
+    .stTextInput > div > div > input:focus {
+        border-color: rgba(0,255,136,0.8) !important;
+        box-shadow: 0 0 10px rgba(0,255,136,0.3) !important;
+        outline: none !important;
+    }
+    
+    /* Number input styling */
+    .stNumberInput > div > div > input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    /* ========== SLIDER STYLING ========== */
+    
+    /* Slider track */
+    .stSlider > div > div > div > div {
+        background-color: rgba(0,255,136,0.3) !important;
+    }
+    
+    /* Slider thumb */
+    .stSlider > div > div > div > div > div {
+        background-color: #00ff88 !important;
+        border: 2px solid #ffffff !important;
+    }
+    
+    /* ========== CHECKBOX STYLING ========== */
+    
+    /* Checkbox container */
+    .stCheckbox {
+        background-color: transparent !important;
+    }
+    
+    /* Checkbox input */
+    .stCheckbox input[type="checkbox"] {
+        accent-color: #00ff88 !important;
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+    }
+    
+    /* Checkbox label */
+    .stCheckbox label {
+        color: #ffffff !important;
+        margin-left: 0.5rem !important;
+    }
+    
+    /* ========== RADIO BUTTON STYLING ========== */
+    
+    /* Radio button container */
+    .stRadio {
+        background-color: transparent !important;
+    }
+    
+    /* Radio button labels */
+    .stRadio label {
+        color: #ffffff !important;
+        background-color: transparent !important;
+    }
+    
+    /* Radio button inputs */
+    .stRadio input[type="radio"] {
+        accent-color: #00ff88 !important;
+    }
+    
+    /* ========== BUTTON STYLING ========== */
+    
+    /* Primary buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, rgba(0,255,136,0.8), rgba(0,200,100,0.6)) !important;
+        color: #000000 !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: bold !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    /* Button hover effect */
+    .stButton > button:hover {
+        background: linear-gradient(135deg, rgba(0,255,136,1), rgba(0,200,100,0.8)) !important;
+        box-shadow: 0 5px 15px rgba(0,255,136,0.4) !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    /* ========== MULTISELECT STYLING ========== */
+    
+    /* Multiselect container */
+    .stMultiSelect > div > div {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Multiselect selected items */
+    .stMultiSelect [data-baseweb="tag"] {
+        background-color: rgba(0,255,136,0.3) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0,255,136,0.6) !important;
+    }
+    
+    /* ========== DATE INPUT STYLING ========== */
+    
+    /* Date input */
+    .stDateInput > div > div > input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    /* ========== FILE UPLOADER STYLING ========== */
+    
+    /* File uploader */
+    .stFileUploader > div {
+        background-color: #000000 !important;
+        border: 2px dashed rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    /* File uploader text */
+    .stFileUploader label {
+        color: #ffffff !important;
+    }
+    
+    /* ========== COLOR PICKER STYLING ========== */
+    
+    /* Color picker */
+    .stColorPicker > div > div > input {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+        border-radius: 8px !important;
+    }
+    
+    /* ========== SEARCH STYLING ========== */
+    
+    /* Search input in selectbox */
+    [data-baseweb="select"] input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    /* ========== MARKDOWN STYLING ========== */
+    
+    /* Markdown content */
+    .stMarkdown {
+        color: #ffffff !important;
+    }
+    
+    /* Code blocks in markdown */
+    .stMarkdown code {
+        background-color: rgba(0,255,136,0.1) !important;
+        color: #00ff88 !important;
+        border: 1px solid rgba(0,255,136,0.3) !important;
+        border-radius: 4px !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+    
+    /* ========== ENSURE ALL FORM ELEMENTS ARE BLACK ========== */
+    
+    /* Universal form element background */
+    input, select, textarea, button {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    /* All input containers */
+    [data-testid="stTextInput"] > div,
+    [data-testid="stSelectbox"] > div,
+    [data-testid="stNumberInput"] > div,
+    [data-testid="stTextArea"] > div {
+        background-color: #000000 !important;
+    }
+    
     </style>
     """

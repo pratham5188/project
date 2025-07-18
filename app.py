@@ -80,12 +80,63 @@ class StockTrendAI:
         """, unsafe_allow_html=True)
     
     def render_sidebar(self):
-        """Render the sidebar with stock selection and controls"""
+        """Render the sidebar with collapsible control panel"""
+        # Initialize control panel state
+        if 'show_control_panel' not in st.session_state:
+            st.session_state.show_control_panel = False
+        
+        # 3-dot menu button with improved styling
         st.sidebar.markdown("""
-        <div class="sidebar-header">
-            <h2>🎯 Control Panel</h2>
+        <div style="
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #00ff88;
+        ">
+            <h2 style="color: #00ff88; margin: 0; font-size: 1.2rem;">🎯 Control Panel</h2>
         </div>
         """, unsafe_allow_html=True)
+        
+        # 3-dot menu button
+        if st.sidebar.button("⚙️ Settings" if not st.session_state.show_control_panel else "🔽 Hide Settings", 
+                            type="primary", use_container_width=True):
+            st.session_state.show_control_panel = not st.session_state.show_control_panel
+            st.rerun()
+        
+        # Show control panel only if toggled on
+        if not st.session_state.show_control_panel:
+            # Minimized view - show only essential info
+            st.sidebar.markdown("""
+            <div style="
+                background: rgba(0,0,0,0.3);
+                padding: 1rem;
+                border-radius: 10px;
+                border: 1px solid rgba(255,255,255,0.1);
+                text-align: center;
+            ">
+                <div style="color: #00ff88; font-size: 0.9rem; margin-bottom: 0.5rem;">📊 Current Selection</div>
+                <div style="color: white; font-weight: bold;">{}</div>
+                <div style="color: #888; font-size: 0.8rem; margin-top: 0.5rem;">Click Settings to configure</div>
+            </div>
+            """.format(INDIAN_STOCKS.get(st.session_state.get('selected_stock', DEFAULT_STOCK), 
+                                       st.session_state.get('selected_stock', DEFAULT_STOCK))), 
+            unsafe_allow_html=True)
+            
+            # Return current settings without showing controls
+            return (st.session_state.get('selected_stock', DEFAULT_STOCK),
+                   st.session_state.get('selected_period', '1y'),
+                   st.session_state.get('use_xgboost', True),
+                   st.session_state.get('use_lstm', True), 
+                   st.session_state.get('use_prophet', True),
+                   st.session_state.get('use_ensemble', True),
+                   st.session_state.get('use_transformer', True),
+                   st.session_state.get('use_gru', True),
+                   st.session_state.get('use_stacking', True),
+                   st.session_state.get('auto_refresh', False))
         
         # Selection type
         selection_type = st.sidebar.radio(
@@ -129,7 +180,7 @@ class StockTrendAI:
             selected_symbol = selected_index
         
         # Update session state if selection changed
-        if selected_symbol != st.session_state.selected_stock:
+        if selected_symbol != st.session_state.get('selected_stock', DEFAULT_STOCK):
             st.session_state.selected_stock = selected_symbol
             st.session_state.stock_data = None
             st.session_state.predictions = None
@@ -169,18 +220,47 @@ class StockTrendAI:
         
         period = period_options[selected_period_display]
         
-        # Model selection
+        # Store period in session state
+        st.session_state.selected_period = period
+        
+        # Model selection with session state defaults
         st.sidebar.markdown("### 🤖 AI Models")
-        use_xgboost = st.sidebar.checkbox("🚀 XGBoost (Speed)", value=True)
-        use_lstm = st.sidebar.checkbox("🧠 LSTM (Deep Learning)", value=True)
-        use_prophet = st.sidebar.checkbox("📈 Prophet (Time Series)", value=True)
-        use_ensemble = st.sidebar.checkbox("🎯 Ensemble (Multi-Model)", value=True)
-        use_transformer = st.sidebar.checkbox("⚡ Transformer (Attention)", value=True)
-        use_gru = st.sidebar.checkbox("🔥 GRU (Efficient RNN)", value=True)
-        use_stacking = st.sidebar.checkbox("🏆 Stacking Ensemble (Meta)", value=True)
+        use_xgboost = st.sidebar.checkbox("🚀 XGBoost (Speed)", 
+                                         value=st.session_state.get('use_xgboost', True),
+                                         key='checkbox_xgboost')
+        use_lstm = st.sidebar.checkbox("🧠 LSTM (Deep Learning)", 
+                                      value=st.session_state.get('use_lstm', True),
+                                      key='checkbox_lstm')
+        use_prophet = st.sidebar.checkbox("📈 Prophet (Time Series)", 
+                                         value=st.session_state.get('use_prophet', True),
+                                         key='checkbox_prophet')
+        use_ensemble = st.sidebar.checkbox("🎯 Ensemble (Multi-Model)", 
+                                          value=st.session_state.get('use_ensemble', True),
+                                          key='checkbox_ensemble')
+        use_transformer = st.sidebar.checkbox("⚡ Transformer (Attention)", 
+                                             value=st.session_state.get('use_transformer', True),
+                                             key='checkbox_transformer')
+        use_gru = st.sidebar.checkbox("🔥 GRU (Efficient RNN)", 
+                                     value=st.session_state.get('use_gru', True),
+                                     key='checkbox_gru')
+        use_stacking = st.sidebar.checkbox("🏆 Stacking Ensemble (Meta)", 
+                                          value=st.session_state.get('use_stacking', True),
+                                          key='checkbox_stacking')
+        
+        # Store model selections in session state
+        st.session_state.use_xgboost = use_xgboost
+        st.session_state.use_lstm = use_lstm
+        st.session_state.use_prophet = use_prophet
+        st.session_state.use_ensemble = use_ensemble
+        st.session_state.use_transformer = use_transformer
+        st.session_state.use_gru = use_gru
+        st.session_state.use_stacking = use_stacking
         
         # Auto-refresh toggle
-        auto_refresh = st.sidebar.checkbox("Auto Refresh (30s)", value=False)
+        auto_refresh = st.sidebar.checkbox("Auto Refresh (30s)", 
+                                          value=st.session_state.get('auto_refresh', False),
+                                          key='checkbox_auto_refresh')
+        st.session_state.auto_refresh = auto_refresh
         
         # Manual refresh button
         if st.sidebar.button("🔄 Refresh Data", type="primary"):
@@ -188,20 +268,51 @@ class StockTrendAI:
             st.session_state.predictions = None
             st.rerun()
         
-        # Display current selection info
+        # Display current selection info with enhanced styling
         st.sidebar.markdown("### 📈 Current Selection")
+        
+        selection_info = f"""
+        <div style="
+            background: rgba(0,255,136,0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid #00ff88;
+            margin: 0.5rem 0;
+        ">
+        """
+        
         if selection_type == "📈 Individual Stocks":
-            st.sidebar.info(f"**Stock:** {INDIAN_STOCKS.get(selected_symbol, selected_symbol)}")
+            selection_info += f'<div style="color: #00ff88; font-weight: bold;">📊 {INDIAN_STOCKS.get(selected_symbol, selected_symbol)}</div>'
         else:
-            st.sidebar.info(f"**Index:** {INDIAN_INDICES.get(selected_symbol, selected_symbol)}")
-        st.sidebar.info(f"**Symbol:** {selected_symbol}")
-        st.sidebar.info(f"**Period:** {selected_period_display}")
+            selection_info += f'<div style="color: #00ff88; font-weight: bold;">📈 {INDIAN_INDICES.get(selected_symbol, selected_symbol)}</div>'
+        
+        selection_info += f"""
+            <div style="color: white; margin: 0.3rem 0;">Symbol: {selected_symbol}</div>
+            <div style="color: white; margin: 0.3rem 0;">Period: {selected_period_display}</div>
+        """
         
         # Show period-specific information
         if period in ['1d', '5d']:
-            st.sidebar.info("📅 Intraday data - Updates every minute") 
+            selection_info += '<div style="color: #ffaa00; font-size: 0.8rem; margin-top: 0.5rem;">📅 Intraday data - Updates every minute</div>'
         else:
-            st.sidebar.info("📊 Historical data - Updates every 5 minutes")
+            selection_info += '<div style="color: #ffaa00; font-size: 0.8rem; margin-top: 0.5rem;">📊 Historical data - Updates every 5 minutes</div>'
+        
+        selection_info += "</div>"
+        st.sidebar.markdown(selection_info, unsafe_allow_html=True)
+        
+        # Model count display
+        selected_models = sum([use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking])
+        st.sidebar.markdown(f"""
+        <div style="
+            background: rgba(0,0,0,0.3);
+            padding: 0.8rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        ">
+            <div style="color: #00ff88; font-weight: bold;">🤖 {selected_models}/7 AI Models Active</div>
+        </div>
+        """, unsafe_allow_html=True)
         
         return selected_symbol, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh
     

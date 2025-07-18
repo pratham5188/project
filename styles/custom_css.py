@@ -1122,11 +1122,38 @@ def get_custom_css():
     
     /* ========== MULTISELECT STYLING ========== */
     
-    /* Multiselect container */
+    /* Multiselect container - Main input area */
     .stMultiSelect > div > div {
         background-color: #000000 !important;
         border: 1px solid rgba(0,255,136,0.5) !important;
         border-radius: 8px !important;
+    }
+    
+    /* Multiselect input field */
+    .stMultiSelect input {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+    
+    /* Multiselect dropdown */
+    .stMultiSelect [data-baseweb="popover"] {
+        background-color: #000000 !important;
+        border: 1px solid rgba(0,255,136,0.5) !important;
+    }
+    
+    /* Multiselect dropdown options */
+    .stMultiSelect [data-baseweb="menu"] {
+        background-color: #000000 !important;
+    }
+    
+    .stMultiSelect [data-baseweb="option"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    
+    .stMultiSelect [data-baseweb="option"]:hover {
+        background-color: rgba(0,255,136,0.2) !important;
     }
     
     /* Multiselect selected items */
@@ -1134,6 +1161,11 @@ def get_custom_css():
         background-color: rgba(0,255,136,0.3) !important;
         color: #ffffff !important;
         border: 1px solid rgba(0,255,136,0.6) !important;
+    }
+    
+    /* Multiselect placeholder text */
+    .stMultiSelect [data-baseweb="input"] {
+        color: rgba(255,255,255,0.7) !important;
     }
     
     /* ========== DATE INPUT STYLING ========== */

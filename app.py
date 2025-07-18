@@ -107,7 +107,7 @@ class StockTrendAI:
             st.session_state.show_control_panel = not st.session_state.show_control_panel
             st.rerun()
         
-        # Show control panel only if toggled on
+        # Show minimized view if collapsed
         if not st.session_state.show_control_panel:
             # Minimized view - show only essential info
             st.sidebar.markdown("""
@@ -126,7 +126,7 @@ class StockTrendAI:
                                        st.session_state.get('selected_stock', DEFAULT_STOCK))), 
             unsafe_allow_html=True)
             
-            # Return current settings without showing controls
+            # Return current settings without showing full controls
             return (st.session_state.get('selected_stock', DEFAULT_STOCK),
                    st.session_state.get('selected_period', '1y'),
                    st.session_state.get('use_xgboost', True),
@@ -137,6 +137,8 @@ class StockTrendAI:
                    st.session_state.get('use_gru', True),
                    st.session_state.get('use_stacking', True),
                    st.session_state.get('auto_refresh', False))
+        
+        # Full control panel when expanded
         
         # Selection type
         selection_type = st.sidebar.radio(
@@ -574,6 +576,9 @@ class StockTrendAI:
                 combined_direction = 'HOLD'
         else:
             combined_direction = 'HOLD'
+            up_percentage = 0
+            down_percentage = 0
+            hold_percentage = 0
         
         # Calculate consensus strength
         max_vote_percentage = max(up_percentage, down_percentage, hold_percentage) if total_directional_votes > 0 else 0
@@ -850,7 +855,7 @@ class StockTrendAI:
             # Fill NaN values in OHLCV data
             for col in required_cols:
                 if chart_data[col].isna().any():
-                    chart_data[col] = chart_data[col].fillna(method='ffill').fillna(method='bfill')
+                    chart_data[col] = chart_data[col].ffill().bfill()
             
             # Create subplots
             fig = make_subplots(

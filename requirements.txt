@@ -1,3 +1,7 @@
+# StockTrendAI Requirements
+# Compatible with Python 3.13
+
+# Core dependencies - All working ✅
 streamlit>=1.47.0
 pandas>=2.3.1
 numpy<2.0
@@ -7,13 +11,18 @@ yfinance>=0.2.65
 xgboost>=3.0.2
 textblob>=0.19.0
 prophet>=1.1.7
-lightgbm>=4.3.0
-tensorflow>=2.18.0
-keras>=3.10.0
-jax[cpu]>=0.5.0
-jaxlib>=0.5.0
+lightgbm>=4.6.0
 matplotlib>=3.10.0
 cmdstanpy>=1.0.4
 holidays>=0.25
-importlib_resources>=6.5.0
+importlib_resources>=6.5.2
 scipy>=1.16.0
+
+# Deep Learning - Currently incompatible with Python 3.13 ❌
+# tensorflow>=2.18.0  # Not available for Python 3.13 yet
+# keras>=3.10.0       # Not available for Python 3.13 yet
+# jax[cpu]>=0.5.0     # Not available for Python 3.13 yet
+# jaxlib>=0.5.0       # Not available for Python 3.13 yet
+
+# Note: TensorFlow/Keras models use fallback implementations
+# JAX models use attention-based fallback implementations

@@ -1238,18 +1238,47 @@ class StockTrendAI:
             
             # --- Market Real-Time Status, Open/Close, and Date (Horizontal Box) ---
             st.markdown("## 📊 Market Status Dashboard")
+            st.info("🔍 Market Status Section - This should be visible!")
             
-            try:
-                import pytz
-                from datetime import datetime
-                ist = pytz.timezone('Asia/Kolkata')
-                now = datetime.now(ist)
-                current_date = now.strftime('%A, %d %B %Y')
-                market_info = self.get_market_status_detailed()
-                status_open = market_info["status"] == "OPEN"
-                status_color = "#00ff88" if status_open else "#ff0044"
-                status_dot = "🟢" if status_open else "🔴"
-                open_close_label = "Market Open" if status_open else "Market Closed"
+            # Simple market status without external dependencies
+            from datetime import datetime, time
+            now = datetime.now()
+            
+            # Add 5 hours 30 minutes for IST (UTC+5:30)
+            ist_hours = now.hour + 5
+            ist_minutes = now.minute + 30
+            if ist_minutes >= 60:
+                ist_hours += 1
+                ist_minutes -= 60
+            if ist_hours >= 24:
+                ist_hours -= 24
+            
+            # Create IST time
+            ist_time = time(ist_hours, ist_minutes)
+            current_date = now.strftime('%A, %d %B %Y')
+            current_time_str = f"{ist_hours:02d}:{ist_minutes:02d} IST"
+            
+            # Market hours: 9:15 AM to 3:30 PM IST
+            market_open = time(9, 15)
+            market_close = time(15, 30)
+            
+            # Determine market status
+            if now.weekday() < 5:  # Monday to Friday
+                if market_open <= ist_time <= market_close:
+                    status = "OPEN"
+                    status_color = "#00ff88"
+                    status_dot = "🟢"
+                    open_close_label = "Market Open"
+                else:
+                    status = "CLOSED"
+                    status_color = "#ff0044"
+                    status_dot = "🔴"
+                    open_close_label = "Market Closed"
+            else:
+                status = "CLOSED"
+                status_color = "#ff0044"
+                status_dot = "🔴"
+                open_close_label = "Market Closed (Weekend)"
                 
                 # Create horizontal market status boxes
                 col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 2])
@@ -1282,7 +1311,7 @@ class StockTrendAI:
                         margin: 8px 0;
                     '>
                         <div style='font-size: 1.2rem; color: #00ff88; font-weight: bold; margin-bottom: 8px;'>⏰ Time</div>
-                        <div style='font-size: 1.1rem; color: #fff; font-weight: 500;'>{market_info['current_time']}</div>
+                        <div style='font-size: 1.1rem; color: #fff; font-weight: 500;'>{current_time_str}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 
@@ -1298,7 +1327,7 @@ class StockTrendAI:
                         margin: 8px 0;
                     '>
                         <div style='font-size: 1.2rem; color: #00ff88; font-weight: bold; margin-bottom: 8px;'>🕒 Market Hours</div>
-                        <div style='font-size: 1.1rem; color: #fff; font-weight: 500;'>{market_info['market_hours']}</div>
+                        <div style='font-size: 1.1rem; color: #fff; font-weight: 500;'>9:15 AM - 3:30 PM IST</div>
                     </div>
                     """, unsafe_allow_html=True)
                 
@@ -1320,16 +1349,6 @@ class StockTrendAI:
                 
                 # Add some spacing
                 st.markdown("<br>", unsafe_allow_html=True)
-                
-            except Exception as e:
-                st.error(f"Error displaying market status: {str(e)}")
-                # Fallback market status display
-                st.markdown("""
-                <div style='background: #181818; border-radius: 10px; padding: 20px; text-align: center; border: 2px solid #ff0044;'>
-                    <div style='font-size: 1.5rem; color: #ff0044;'>⚠️ Market Status Unavailable</div>
-                    <div style='color: #aaa; margin-top: 10px;'>Please check your connection and refresh the page</div>
-                </div>
-                """, unsafe_allow_html=True)
             try:
                 # Render sidebar and get selections
                 selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh = self.render_sidebar()

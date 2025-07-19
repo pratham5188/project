@@ -812,6 +812,10 @@ class StockTrendAI:
         consensus_strength = combined_pred['consensus_strength']
         model_count = combined_pred['model_count']
         
+        # Get current date and prediction date
+        current_date = datetime.now().strftime("%d %b %Y")
+        prediction_date = (datetime.now() + timedelta(days=1)).strftime("%d %b %Y")
+        
         # Determine colors and styling
         if direction == 'UP':
             color_class = "bullish"
@@ -862,10 +866,12 @@ class StockTrendAI:
                 <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Current Price</div>
                     <div style="color: #ffffff; font-size: 1.3rem; font-weight: bold;">₹{current_price:.2f}</div>
+                    <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{current_date}</div>
                 </div>
                 <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid {border_color};">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Predicted Price</div>
                     <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">₹{predicted_price:.2f}</div>
+                    <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{prediction_date}</div>
                 </div>
                 <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Expected Change</div>
@@ -990,6 +996,10 @@ class StockTrendAI:
                     change_percent = (price_change / current_price) * 100
                     confidence_indicator = self.get_confidence_indicator(confidence)
                     confidence_color = self.get_confidence_color(confidence)
+                    # Get current date and prediction date
+                    current_date = datetime.now().strftime("%d %b %Y")
+                    prediction_date = (datetime.now() + timedelta(days=1)).strftime("%d %b %Y")
+                    
                     with cols[j]:
                         st.markdown(f"""
                         <div class="prediction-card {color_class}" style="min-width: 320px; max-width: 340px; margin-bottom: 16px;">
@@ -1002,8 +1012,8 @@ class StockTrendAI:
                                 </span>
                             </div>
                             <div class="price-prediction">
-                                <div class="current-price">Current: ₹{current_price:.2f}</div>
-                                <div class="predicted-price">Predicted: ₹{predicted_price:.2f}</div>
+                                <div class="current-price">Current: ₹{current_price:.2f} <span style="color: #aaa; font-size: 0.8rem;">({current_date})</span></div>
+                                <div class="predicted-price">Predicted: ₹{predicted_price:.2f} <span style="color: #aaa; font-size: 0.8rem;">({prediction_date})</span></div>
                                 <div class="price-change">
                                     Change: {price_change:+.2f} ({change_percent:+.2f}%)
                                 </div>

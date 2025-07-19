@@ -1235,26 +1235,101 @@ class StockTrendAI:
         
         with tab1:
             st.info("🟢 You are in the AI Predictions tab.")
+            
             # --- Market Real-Time Status, Open/Close, and Date (Horizontal Box) ---
-            import pytz
-            from datetime import datetime
-            ist = pytz.timezone('Asia/Kolkata')
-            now = datetime.now(ist)
-            current_date = now.strftime('%A, %d %B %Y')
-            market_info = self.get_market_status_detailed()
-            status_open = market_info["status"] == "OPEN"
-            status_color = "#00ff88" if status_open else "#ff0044"
-            status_dot = "🟢" if status_open else "🔴"
-            open_close_label = "Market Open" if status_open else "Market Closed"
-            col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 2])
-            with col1:
-                st.markdown(f"<div style='background:#181818; border-radius:10px; padding:12px 0; text-align:center; border:2px solid #222;'><b>📅 Date</b><br><span style='font-size:1.1rem; color:#fff'>{current_date}</span></div>", unsafe_allow_html=True)
-            with col2:
-                st.markdown(f"<div style='background:#181818; border-radius:10px; padding:12px 0; text-align:center; border:2px solid #222;'><b>⏰ Time</b><br><span style='font-size:1.1rem; color:#fff'>{market_info['current_time']}</span></div>", unsafe_allow_html=True)
-            with col3:
-                st.markdown(f"<div style='background:#181818; border-radius:10px; padding:12px 0; text-align:center; border:2px solid #222;'><b>🕒 Market Hours</b><br><span style='font-size:1.1rem; color:#fff'>{market_info['market_hours']}</span></div>", unsafe_allow_html=True)
-            with col4:
-                st.markdown(f"<div style='background:#181818; border-radius:10px; padding:12px 0; text-align:center; border:2px solid {status_color}; box-shadow:0 0 8px {status_color}33;'><span style='font-size:2rem; margin-right:8px;'>{status_dot}</span><b style='color:{status_color}; font-size:1.1rem;'>{open_close_label}</b></div>", unsafe_allow_html=True)
+            st.markdown("## 📊 Market Status Dashboard")
+            
+            try:
+                import pytz
+                from datetime import datetime
+                ist = pytz.timezone('Asia/Kolkata')
+                now = datetime.now(ist)
+                current_date = now.strftime('%A, %d %B %Y')
+                market_info = self.get_market_status_detailed()
+                status_open = market_info["status"] == "OPEN"
+                status_color = "#00ff88" if status_open else "#ff0044"
+                status_dot = "🟢" if status_open else "🔴"
+                open_close_label = "Market Open" if status_open else "Market Closed"
+                
+                # Create horizontal market status boxes
+                col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 2])
+                
+                with col1:
+                    st.markdown(f"""
+                    <div style='
+                        background: linear-gradient(135deg, #181818, #222);
+                        border-radius: 12px;
+                        padding: 16px 8px;
+                        text-align: center;
+                        border: 2px solid #333;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                        margin: 8px 0;
+                    '>
+                        <div style='font-size: 1.2rem; color: #00ff88; font-weight: bold; margin-bottom: 8px;'>📅 Date</div>
+                        <div style='font-size: 1.1rem; color: #fff; font-weight: 500;'>{current_date}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col2:
+                    st.markdown(f"""
+                    <div style='
+                        background: linear-gradient(135deg, #181818, #222);
+                        border-radius: 12px;
+                        padding: 16px 8px;
+                        text-align: center;
+                        border: 2px solid #333;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                        margin: 8px 0;
+                    '>
+                        <div style='font-size: 1.2rem; color: #00ff88; font-weight: bold; margin-bottom: 8px;'>⏰ Time</div>
+                        <div style='font-size: 1.1rem; color: #fff; font-weight: 500;'>{market_info['current_time']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col3:
+                    st.markdown(f"""
+                    <div style='
+                        background: linear-gradient(135deg, #181818, #222);
+                        border-radius: 12px;
+                        padding: 16px 8px;
+                        text-align: center;
+                        border: 2px solid #333;
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                        margin: 8px 0;
+                    '>
+                        <div style='font-size: 1.2rem; color: #00ff88; font-weight: bold; margin-bottom: 8px;'>🕒 Market Hours</div>
+                        <div style='font-size: 1.1rem; color: #fff; font-weight: 500;'>{market_info['market_hours']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col4:
+                    st.markdown(f"""
+                    <div style='
+                        background: linear-gradient(135deg, #181818, #222);
+                        border-radius: 12px;
+                        padding: 16px 8px;
+                        text-align: center;
+                        border: 2px solid {status_color};
+                        box-shadow: 0 0 15px {status_color}40;
+                        margin: 8px 0;
+                    '>
+                        <div style='font-size: 2.5rem; margin-bottom: 8px;'>{status_dot}</div>
+                        <div style='color: {status_color}; font-size: 1.3rem; font-weight: bold;'>{open_close_label}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Add some spacing
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+            except Exception as e:
+                st.error(f"Error displaying market status: {str(e)}")
+                # Fallback market status display
+                st.markdown("""
+                <div style='background: #181818; border-radius: 10px; padding: 20px; text-align: center; border: 2px solid #ff0044;'>
+                    <div style='font-size: 1.5rem; color: #ff0044;'>⚠️ Market Status Unavailable</div>
+                    <div style='color: #aaa; margin-top: 10px;'>Please check your connection and refresh the page</div>
+                </div>
+                """, unsafe_allow_html=True)
             try:
                 # Render sidebar and get selections
                 selected_stock, period, use_xgboost, use_lstm, use_prophet, use_ensemble, use_transformer, use_gru, use_stacking, auto_refresh = self.render_sidebar()

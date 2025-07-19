@@ -18,9 +18,14 @@ class DataFetcher:
             # Handle different symbol formats
             original_symbol = symbol
             
-            # Don't modify symbols that already have proper formatting
-            if symbol.startswith('^') or symbol.endswith('.NS') or symbol.endswith('.BO'):
-                # Keep the symbol as is for indices and already formatted symbols
+            # Clean the symbol - remove any extra .NS suffixes
+            if symbol.endswith('.NS.NS'):
+                symbol = symbol.replace('.NS.NS', '.NS')
+            elif symbol.endswith('.NS'):
+                # Keep the symbol as is for already formatted symbols
+                pass
+            elif symbol.startswith('^'):
+                # Keep the symbol as is for indices
                 pass
             else:
                 # Add .NS suffix for NSE stocks
@@ -190,7 +195,10 @@ class DataFetcher:
     def get_real_time_price(self, symbol):
         """Get real-time price for a stock"""
         try:
-            if not symbol.endswith('.NS') and not symbol.endswith('.BO'):
+            # Clean the symbol first
+            if symbol.endswith('.NS.NS'):
+                symbol = symbol.replace('.NS.NS', '.NS')
+            elif not symbol.endswith('.NS') and not symbol.endswith('.BO'):
                 symbol = symbol + '.NS'
             
             ticker = yf.Ticker(symbol)
@@ -215,7 +223,10 @@ class DataFetcher:
     def get_company_info(self, symbol):
         """Get company information"""
         try:
-            if not symbol.endswith('.NS') and not symbol.endswith('.BO'):
+            # Clean the symbol first
+            if symbol.endswith('.NS.NS'):
+                symbol = symbol.replace('.NS.NS', '.NS')
+            elif not symbol.endswith('.NS') and not symbol.endswith('.BO'):
                 symbol = symbol + '.NS'
             
             ticker = yf.Ticker(symbol)
@@ -239,7 +250,10 @@ class DataFetcher:
     def get_historical_data_custom(self, symbol, start_date, end_date):
         """Get historical data for custom date range"""
         try:
-            if not symbol.endswith('.NS') and not symbol.endswith('.BO'):
+            # Clean the symbol first
+            if symbol.endswith('.NS.NS'):
+                symbol = symbol.replace('.NS.NS', '.NS')
+            elif not symbol.endswith('.NS') and not symbol.endswith('.BO'):
                 symbol = symbol + '.NS'
             
             ticker = yf.Ticker(symbol)
@@ -262,7 +276,10 @@ class DataFetcher:
     def validate_symbol(self, symbol):
         """Validate if a stock symbol exists"""
         try:
-            if not symbol.endswith('.NS') and not symbol.endswith('.BO'):
+            # Clean the symbol first
+            if symbol.endswith('.NS.NS'):
+                symbol = symbol.replace('.NS.NS', '.NS')
+            elif not symbol.endswith('.NS') and not symbol.endswith('.BO'):
                 symbol = symbol + '.NS'
             
             ticker = yf.Ticker(symbol)

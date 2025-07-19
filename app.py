@@ -1433,6 +1433,7 @@ class StockTrendAI:
                 with port_col1:
                     # Add holdings
                     st.markdown("### ➕ Add New Holding")
+                    st.info("💡 **Important**: Use the dropdown menu below to select stocks. The system automatically handles the correct symbol format (e.g., RELIANCE.NS).")
                     
                     with st.form("add_holding_form"):
                         symbol = st.selectbox(
@@ -1450,11 +1451,17 @@ class StockTrendAI:
                         purchase_date = st.date_input("Purchase Date", value=datetime.now())
                         
                         if st.form_submit_button("Add Holding"):
-                            self.portfolio_tracker.add_holding(
-                                symbol, quantity, purchase_price, purchase_date.isoformat()
-                            )
-                            st.success(f"Added {quantity} shares of {symbol} to portfolio")
-                            st.rerun()
+                            # Validate the symbol first
+                            validation_result = self.data_fetcher.validate_symbol(symbol)
+                            if validation_result:
+                                self.portfolio_tracker.add_holding(
+                                    symbol, quantity, purchase_price, purchase_date.isoformat()
+                                )
+                                st.success(f"Added {quantity} shares of {symbol} to portfolio")
+                                st.rerun()
+                            else:
+                                st.error(f"❌ Invalid symbol: {symbol}. Please use the dropdown to select a valid stock.")
+                                st.info("💡 Tip: Use the dropdown menu above to select stocks. The system automatically handles the correct symbol format.")
                     
                     # Current holdings
                     st.markdown("### 📋 Current Holdings")

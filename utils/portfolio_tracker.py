@@ -81,6 +81,15 @@ class PortfolioTracker:
                 st.session_state[self.portfolio_key]['transactions'].append(transaction)
                 self.update_portfolio_summary()
     
+    def clean_symbol(self, symbol):
+        """Clean symbol to ensure proper format"""
+        if symbol.endswith('.NS.NS'):
+            return symbol.replace('.NS.NS', '.NS')
+        elif symbol.endswith('.NS'):
+            return symbol
+        else:
+            return symbol + '.NS'
+    
     def update_portfolio_prices(self, data_fetcher):
         """Update current prices for all holdings"""
         if self.portfolio_key not in st.session_state:
@@ -90,8 +99,11 @@ class PortfolioTracker:
         
         for holding in holdings:
             try:
+                # Clean the symbol first
+                clean_symbol = self.clean_symbol(holding['symbol'])
+                
                 # Get current price
-                current_data = data_fetcher.get_stock_data(holding['symbol'], '1d')
+                current_data = data_fetcher.get_stock_data(clean_symbol, '1d')
                 if current_data is not None and not current_data.empty:
                     current_price = float(current_data['Close'].iloc[-1])
                     holding['current_price'] = current_price

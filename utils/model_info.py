@@ -54,6 +54,26 @@ class ModelInfo:
                 'use_case': 'Advanced pattern recognition and market sentiment analysis',
                 'accuracy': 'Very High',
                 'speed': 'Medium-Slow'
+            },
+            'GRU': {
+                'icon': '🔥',
+                'name': 'GRU (Gated Recurrent Unit)',
+                'type': 'Recurrent Neural Network',
+                'description': 'GRU is a type of RNN that is efficient for sequential data and captures temporal dependencies with fewer parameters than LSTM.',
+                'strengths': ['Efficient sequential modeling', 'Faster training than LSTM', 'Good for time series'],
+                'use_case': 'Short- and medium-term trend prediction with efficient training',
+                'accuracy': 'High',
+                'speed': 'Fast-Medium'
+            },
+            'Stacking': {
+                'icon': '🏆',
+                'name': 'Stacking Ensemble',
+                'type': 'Meta-Ensemble Learning',
+                'description': 'Combines predictions from multiple base models using a meta-model for improved accuracy and robustness.',
+                'strengths': ['Combines strengths of all models', 'Reduces bias and variance', 'Best overall performance'],
+                'use_case': 'Ultimate consensus prediction for highest reliability',
+                'accuracy': 'Very High',
+                'speed': 'Medium'
             }
         }
     
@@ -113,27 +133,27 @@ class ModelInfo:
         recommendations = [
             {
                 'scenario': '🚀 Quick Analysis',
-                'models': ['XGBoost'],
+                'models': ['XGBoost', 'GRU'],
                 'reason': 'Fast predictions for quick market decisions'
             },
             {
                 'scenario': '📊 Comprehensive Analysis',
-                'models': ['Ensemble', 'Transformer'],
-                'reason': 'Multiple perspectives for thorough analysis'
+                'models': ['Ensemble', 'Transformer', 'Stacking'],
+                'reason': 'Multiple perspectives and meta-ensembling for thorough analysis'
             },
             {
                 'scenario': '📈 Long-term Trends',
-                'models': ['Prophet', 'LSTM'],
+                'models': ['Prophet', 'LSTM', 'GRU'],
                 'reason': 'Time series and sequential pattern expertise'
             },
             {
                 'scenario': '🎯 Maximum Accuracy',
-                'models': ['Ensemble', 'Transformer', 'LSTM'],
-                'reason': 'Advanced models with highest prediction accuracy'
+                'models': ['Ensemble', 'Transformer', 'LSTM', 'Stacking'],
+                'reason': 'Advanced models and meta-ensembling for highest prediction accuracy'
             },
             {
                 'scenario': '⚡ Real-time Trading',
-                'models': ['XGBoost', 'Prophet'],
+                'models': ['XGBoost', 'Prophet', 'GRU'],
                 'reason': 'Fast execution for time-sensitive decisions'
             }
         ]

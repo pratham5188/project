@@ -314,6 +314,9 @@ class PortfolioTracker:
         # Initialize portfolio
         self.initialize_portfolio()
         
+        # Import stock configuration
+        from config.settings import INDIAN_STOCKS
+        
         # Create three columns for layout
         col1, col2, col3 = st.columns([2, 2, 1])
         
@@ -372,33 +375,35 @@ class PortfolioTracker:
             st.markdown("### ➕ Add New Holding")
             
             with st.form("add_holding_form"):
-                symbol_input = st.text_input("Stock Symbol (e.g., RELIANCE.NS)")
+                # Dropdown for stock selection
+                symbol_input = st.selectbox(
+                    "Select Stock",
+                    options=list(INDIAN_STOCKS.keys()),
+                    format_func=lambda x: f"{INDIAN_STOCKS[x]} ({x})"
+                )
                 quantity_input = st.number_input("Quantity", min_value=1, value=1)
                 price_input = st.number_input("Purchase Price (₹)", min_value=0.01, value=100.0, step=0.01)
                 purchase_date = st.date_input("Purchase Date")
                 
                 if st.form_submit_button("🚀 Add Holding"):
-                    if symbol_input:
-                        try:
-                            # Clean and validate symbol
-                            clean_symbol = self.clean_symbol(symbol_input.upper())
-                            from .data_fetcher import DataFetcher
-                            data_fetcher = DataFetcher()
-                            if data_fetcher.validate_symbol(clean_symbol):
-                                self.add_holding(
-                                    clean_symbol,
-                                    quantity_input,
-                                    price_input,
-                                    purchase_date.isoformat()
-                                )
-                                st.success(f"✅ Added {quantity_input} shares of {clean_symbol} to portfolio!")
-                                st.rerun()
-                            else:
-                                st.error(f"Invalid symbol: {clean_symbol}. Please check the symbol and try again.")
-                        except Exception as e:
-                            st.error(f"❌ Error adding holding: {str(e)}")
-                    else:
-                        st.error("Please enter a stock symbol")
+                    try:
+                        # Clean and validate symbol
+                        clean_symbol = self.clean_symbol(symbol_input.upper())
+                        from .data_fetcher import DataFetcher
+                        data_fetcher = DataFetcher()
+                        if data_fetcher.validate_symbol(clean_symbol):
+                            self.add_holding(
+                                clean_symbol,
+                                quantity_input,
+                                price_input,
+                                purchase_date.isoformat()
+                            )
+                            st.success(f"✅ Added {quantity_input} shares of {INDIAN_STOCKS[symbol_input]} ({clean_symbol}) to portfolio!")
+                            st.rerun()
+                        else:
+                            st.error(f"Invalid symbol: {clean_symbol}. Please check the symbol and try again.")
+                    except Exception as e:
+                        st.error(f"❌ Error adding holding: {str(e)}")
         
         with col3:
             st.markdown("### 🗑️ Manage Holdings")
@@ -434,19 +439,23 @@ class PortfolioTracker:
         
         with watchlist_col2:
             with st.form("add_watchlist_form"):
-                watch_symbol = st.text_input("Add to Watchlist")
+                # Dropdown for watchlist stock selection
+                watch_symbol = st.selectbox(
+                    "Add to Watchlist",
+                    options=list(INDIAN_STOCKS.keys()),
+                    format_func=lambda x: f"{INDIAN_STOCKS[x]} ({x})"
+                )
                 if st.form_submit_button("👁️ Watch"):
-                    if watch_symbol:
-                        # Clean and validate symbol
-                        clean_watch_symbol = self.clean_symbol(watch_symbol.upper())
-                        from .data_fetcher import DataFetcher
-                        data_fetcher = DataFetcher()
-                        if data_fetcher.validate_symbol(clean_watch_symbol):
-                            self.add_to_watchlist(clean_watch_symbol, clean_watch_symbol)
-                            st.success(f"✅ Added {clean_watch_symbol} to watchlist!")
-                            st.rerun()
-                        else:
-                            st.error(f"Invalid symbol: {clean_watch_symbol}. Please check the symbol and try again.")
+                    # Clean and validate symbol
+                    clean_watch_symbol = self.clean_symbol(watch_symbol.upper())
+                    from .data_fetcher import DataFetcher
+                    data_fetcher = DataFetcher()
+                    if data_fetcher.validate_symbol(clean_watch_symbol):
+                        self.add_to_watchlist(clean_watch_symbol, INDIAN_STOCKS[watch_symbol])
+                        st.success(f"✅ Added {INDIAN_STOCKS[watch_symbol]} ({clean_watch_symbol}) to watchlist!")
+                        st.rerun()
+                    else:
+                        st.error(f"Invalid symbol: {clean_watch_symbol}. Please check the symbol and try again.")
         
         # Price alerts section
         st.markdown("### 🚨 Price Alerts")
@@ -464,19 +473,23 @@ class PortfolioTracker:
         
         with alert_col2:
             with st.form("add_alert_form"):
-                alert_symbol = st.text_input("Symbol for Alert")
+                # Dropdown for alert stock selection
+                alert_symbol = st.selectbox(
+                    "Symbol for Alert",
+                    options=list(INDIAN_STOCKS.keys()),
+                    format_func=lambda x: f"{INDIAN_STOCKS[x]} ({x})"
+                )
                 target_price = st.number_input("Target Price (₹)", min_value=0.01, value=100.0)
                 alert_type = st.selectbox("Alert Type", ["above", "below"])
                 
                 if st.form_submit_button("🚨 Set Alert"):
-                    if alert_symbol:
-                        # Clean and validate symbol
-                        clean_alert_symbol = self.clean_symbol(alert_symbol.upper())
-                        from .data_fetcher import DataFetcher
-                        data_fetcher = DataFetcher()
-                        if data_fetcher.validate_symbol(clean_alert_symbol):
-                            self.add_price_alert(clean_alert_symbol, target_price, alert_type)
-                            st.success(f"✅ Alert set for {clean_alert_symbol}!")
-                            st.rerun()
-                        else:
-                            st.error(f"Invalid symbol: {clean_alert_symbol}. Please check the symbol and try again.")
+                    # Clean and validate symbol
+                    clean_alert_symbol = self.clean_symbol(alert_symbol.upper())
+                    from .data_fetcher import DataFetcher
+                    data_fetcher = DataFetcher()
+                    if data_fetcher.validate_symbol(clean_alert_symbol):
+                        self.add_price_alert(clean_alert_symbol, target_price, alert_type)
+                        st.success(f"✅ Alert set for {INDIAN_STOCKS[alert_symbol]} ({clean_alert_symbol})!")
+                        st.rerun()
+                    else:
+                        st.error(f"Invalid symbol: {clean_alert_symbol}. Please check the symbol and try again.")

@@ -2,104 +2,195 @@
 
 # StockTrendAI - Indian Market Predictor
 
-A comprehensive AI-powered stock market prediction application for Indian NSE stocks with futuristic dark theme styling.
+A comprehensive AI-powered stock prediction application for the Indian market, built with Streamlit and featuring multiple machine learning models.
 
 ## Features
 
-- 🔮 AI-powered stock predictions using XGBoost and LSTM models
-- 📊 Real-time market data and technical analysis
-- 🟢🔴 Live NSE market status indicator
-- 📈 Advanced charting with technical indicators
-- 📰 News sentiment analysis
-- 💼 Portfolio management
-- 🌙 Consistent dark theme across all environments
+- **Multi-Model Predictions**: XGBoost, LSTM, Prophet, Transformer, GRU, and Ensemble models
+- **Real-time Data**: Live stock data from Yahoo Finance
+- **Technical Analysis**: Comprehensive technical indicators
+- **Sentiment Analysis**: News sentiment analysis for stocks
+- **Portfolio Tracking**: Track your investments and performance
+- **Advanced Analytics**: Risk analysis, Monte Carlo simulations, and correlation analysis
+- **Beautiful UI**: Futuristic 3D neon glow interface
+
+## Deployment Status
+
+✅ **All deployment issues have been resolved!**
+
+### Fixed Issues:
+- ✅ Python version compatibility (updated to Python 3.13)
+- ✅ Missing dependencies (JAX, Prophet, Keras, etc.)
+- ✅ Import errors resolved
+- ✅ Streamlit configuration optimized
+- ✅ Deployment scripts created
 
 ## Quick Start
 
-1. **Install Python 3.11+** and required packages:
-   ```bash
-   pip install streamlit yfinance pandas numpy plotly scikit-learn textblob pytz
-   ```
+### Local Development
+```bash
+# Install dependencies
+pip3 install -r requirements.txt
 
-2. **Run the application**:
-   ```bash
-   streamlit run app.py
-   ```
+# Run the application
+python3 -m streamlit run app.py
+```
 
-3. **Access the app**: Open http://localhost:8501 in your browser
-
-## Environment Consistency
-
-The application is designed to look **exactly the same** whether running on:
-- Replit (preview)
-- Local machine (localhost)
-- Any other hosting environment
-
-### Why it stays consistent:
-
-1. **Forced Dark Theme**: Custom CSS with `!important` rules override any system defaults
-2. **Streamlit Config**: `.streamlit/config.toml` enforces dark theme settings
-3. **Chart Backgrounds**: All Plotly charts explicitly set dark backgrounds
-4. **Font Consistency**: Orbitron font family is loaded and applied globally
-
-### If you see white backgrounds or wrong colors:
-
-1. **Clear browser cache** and reload
-2. **Check console errors** for font loading issues
-3. **Verify config**: Make sure `.streamlit/config.toml` is in the project root
-4. **Restart Streamlit** after any configuration changes
+### Deployment
+```bash
+# Use the provided startup script
+./start.sh
+```
 
 ## Project Structure
 
 ```
-├── app.py                 # Main application
-├── config/               
-│   └── settings.py       # Application settings
-├── models/               
-│   ├── xgboost_model.py  # XGBoost prediction model
-│   └── lstm_model.py     # LSTM prediction model
-├── utils/                
-│   ├── data_fetcher.py   # Stock data retrieval
-│   ├── technical_indicators.py  # Technical analysis
-│   ├── news_sentiment.py # Sentiment analysis
-│   └── portfolio_tracker.py    # Portfolio management
-├── styles/               
-│   └── custom_css.py     # Dark theme styling
-├── .streamlit/           
-│   └── config.toml       # Streamlit configuration
-└── README.md             # This file
+├── app.py                 # Main Streamlit application
+├── requirements.txt       # Python dependencies
+├── pyproject.toml        # Project configuration
+├── .replit              # Replit deployment config
+├── start.sh             # Startup script
+├── test_imports.py      # Import verification script
+├── utils/               # Utility modules
+│   ├── data_fetcher.py
+│   ├── technical_indicators.py
+│   ├── model_utils.py
+│   ├── portfolio_tracker.py
+│   ├── advanced_analytics.py
+│   ├── news_sentiment.py
+│   ├── ui_components.py
+│   └── model_info.py
+├── models/              # ML model implementations
+│   ├── xgboost_model.py
+│   ├── lstm_model.py
+│   ├── prophet_model.py
+│   ├── ensemble_model.py
+│   ├── transformer_model.py
+│   ├── gru_model.py
+│   └── stacking_ensemble.py
+├── config/              # Configuration files
+│   └── settings.py
+└── styles/              # UI styling
+    └── custom_css.py
 ```
 
-## Key Features
+## Dependencies
 
-### Real-time Market Status
-- Shows NSE market open/closed status
-- Displays current IST time
-- Trading hours: 9:15 AM - 3:30 PM IST (Mon-Fri)
+### Core Dependencies
+- **Streamlit** >= 1.47.0 - Web application framework
+- **Pandas** >= 2.3.1 - Data manipulation
+- **NumPy** < 2.0 - Numerical computing
+- **Plotly** >= 6.2.0 - Interactive charts
 
-### AI Predictions
-- XGBoost classification model for direction prediction
-- LSTM for time series analysis
-- Confidence scoring for predictions
-- Technical indicator integration
+### Machine Learning
+- **Scikit-learn** >= 1.7.0 - Traditional ML algorithms
+- **XGBoost** >= 3.0.2 - Gradient boosting
+- **LightGBM** >= 4.3.0 - Light gradient boosting
+- **TensorFlow** >= 2.18.0 - Deep learning framework
+- **Keras** >= 3.10.0 - High-level neural networks
+- **JAX** >= 0.5.0 - High-performance ML
+- **Prophet** >= 1.1.7 - Time series forecasting
 
-### Dark Theme
-- Futuristic neon green/blue color scheme
-- Orbitron monospace font
-- Consistent across all devices and browsers
-- Environment-independent styling
+### Data Sources
+- **YFinance** >= 0.2.65 - Stock market data
+- **TextBlob** >= 0.19.0 - Sentiment analysis
+
+## Configuration
+
+### Environment Variables
+```bash
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+export STREAMLIT_SERVER_PORT=5000
+export STREAMLIT_SERVER_HEADLESS=true
+```
+
+### Streamlit Configuration
+The application uses a custom Streamlit configuration in `.streamlit/config.toml`:
+- Port: 5000
+- Headless mode enabled
+- Custom theme with neon colors
+- Error details enabled for debugging
+
+## Usage
+
+1. **Select a Stock**: Choose from the dropdown or enter a custom symbol
+2. **Choose Time Period**: Select from 1 day to 10 years
+3. **Enable Models**: Select which ML models to use for predictions
+4. **View Results**: See predictions, charts, and analysis
+
+## Model Information
+
+### XGBoost Model
+- **Type**: Gradient Boosting (Random Forest fallback)
+- **Features**: Technical indicators, price ratios, volume analysis
+- **Use Case**: Short-term price direction prediction
+
+### LSTM Model
+- **Type**: Long Short-Term Memory neural network
+- **Features**: Sequential price data
+- **Use Case**: Pattern recognition in time series
+
+### Prophet Model
+- **Type**: Facebook's time series forecasting
+- **Features**: Trend and seasonality analysis
+- **Use Case**: Long-term trend prediction
+
+### Ensemble Model
+- **Type**: Combination of multiple models
+- **Features**: Weighted average of predictions
+- **Use Case**: Improved accuracy and reliability
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Import Errors**: Run `python3 test_imports.py` to verify all dependencies
+2. **Port Conflicts**: Change port in `.streamlit/config.toml`
+3. **Memory Issues**: Reduce model complexity in settings
+4. **Data Fetching**: Check internet connection and Yahoo Finance availability
+
+### Verification Commands
+```bash
+# Test all imports
+python3 test_imports.py
+
+# Check Python version
+python3 --version
+
+# Verify Streamlit installation
+python3 -m streamlit --version
+```
+
+## Performance Notes
+
+- **GPU Support**: Application automatically detects and uses GPU if available
+- **Caching**: Data is cached for 5 minutes to improve performance
+- **Model Loading**: Pre-trained models are loaded on startup
+- **Memory Usage**: Optimized for deployment environments
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
 
 ## Support
 
-If the application doesn't look like the preview:
-1. Ensure all files are properly downloaded
-2. Run `streamlit run app.py` from the project root
-3. Check browser console for any errors
-4. Clear cache and reload the page
+For issues and questions:
+1. Check the troubleshooting section
+2. Run the test script
+3. Review the logs
+4. Create an issue with detailed information
 
-The styling is designed to be identical everywhere - if you see differences, it's likely a browser cache or file loading issue.
-# StockTrendAI
+---
 
-
-# StockTrendAI
+**Status**: ✅ Ready for deployment
+**Last Updated**: July 19, 2025
+**Version**: 1.0.0
 

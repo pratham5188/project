@@ -2,7 +2,7 @@
 name = "repl-nix-workspace"
 version = "0.1.0"
 description = "Add your description here"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.16.4",
     "numpy<2.0",
@@ -16,9 +16,15 @@ dependencies = [
     "streamlit>=1.47.0",
     "keras>=3.10.0",
     "jax[cpu]>=0.5.0",
+    "jaxlib>=0.5.0",
     "textblob>=0.19.0",
     "xgboost>=3.0.2",
     "yfinance>=0.2.65",
     "lightgbm>=4.3.0",
     "tensorflow>=2.18.0",
+    "prophet>=1.1.7",
+    "matplotlib>=3.10.0",
+    "cmdstanpy>=1.0.4",
+    "holidays>=0.25",
+    "importlib_resources>=6.5.0"
 ]

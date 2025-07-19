@@ -15,6 +15,13 @@ class ModelInfo:
                 'use_case': 'Quick market analysis, feature-driven predictions, and trend detection in structured data.',
                 'limitations': 'Not suitable for capturing long-term dependencies or sequential patterns.',
                 'example': 'Use XGBoost for rapid screening of stocks based on technical indicators and fundamentals.',
+                'data_requirements': 'Structured/tabular data, moderate to large datasets, labeled target variable.',
+                'best_market_conditions': 'Stable or trending markets with clear feature relationships.',
+                'worst_market_conditions': 'Highly volatile or regime-shifting markets.',
+                'interpretability': 'Medium (feature importance available, but tree ensembles can be complex).',
+                'maintenance': 'Low to medium (retrain as new data arrives, monitor for drift).',
+                'example_hyperparameters': 'n_estimators=100, max_depth=6, learning_rate=0.1, subsample=0.8',
+                'not_for': 'Pure time series/sequential data, very small datasets.',
                 'accuracy': 'Medium-High',
                 'speed': 'Very Fast'
             },
@@ -28,6 +35,13 @@ class ModelInfo:
                 'use_case': 'Long-term trend analysis, pattern recognition, and forecasting in stock prices.',
                 'limitations': 'May overfit on small datasets; less interpretable than tree models.',
                 'example': 'Use LSTM to predict stock prices based on historical price movements and volume.',
+                'data_requirements': 'Sequential/time series data, large dataset preferred, normalized inputs.',
+                'best_market_conditions': 'Markets with persistent trends or repeating patterns.',
+                'worst_market_conditions': 'Markets with abrupt regime changes or very short-term noise.',
+                'interpretability': 'Low (deep neural networks are black-box).',
+                'maintenance': 'Medium to high (monitor for overfitting, retrain with new data).',
+                'example_hyperparameters': 'layers=2, units=64, dropout=0.2, sequence_length=60',
+                'not_for': 'Small datasets, purely feature-driven (non-sequential) problems.',
                 'accuracy': 'High',
                 'speed': 'Medium'
             },
@@ -41,6 +55,13 @@ class ModelInfo:
                 'use_case': 'Seasonal trend prediction, long-term forecasting, and business planning.',
                 'limitations': 'Not suitable for high-frequency or highly volatile data.',
                 'example': 'Use Prophet to forecast monthly or quarterly stock trends, accounting for holidays and seasonality.',
+                'data_requirements': 'Time series data with clear seasonality/trends, regular intervals.',
+                'best_market_conditions': 'Markets with strong seasonality or regular cycles.',
+                'worst_market_conditions': 'Markets with sudden shocks or no clear trend.',
+                'interpretability': 'High (trend/seasonality components are explicit).',
+                'maintenance': 'Low (easy to retrain, robust to missing data).',
+                'example_hyperparameters': 'seasonality_mode="additive", yearly_seasonality=True, changepoint_prior_scale=0.05',
+                'not_for': 'High-frequency trading, highly non-linear or regime-shifting data.',
                 'accuracy': 'High',
                 'speed': 'Fast'
             },
@@ -54,6 +75,13 @@ class ModelInfo:
                 'use_case': 'Comprehensive analysis with consensus from multiple models.',
                 'limitations': 'May be slower and harder to debug; requires all base models to be well-tuned.',
                 'example': 'Use Ensemble for final buy/sell decisions by combining predictions from XGBoost, LSTM, and Prophet.',
+                'data_requirements': 'All data required by base models; diverse features improve performance.',
+                'best_market_conditions': 'Markets where no single model dominates; need for robustness.',
+                'worst_market_conditions': 'When base models are poorly tuned or highly correlated.',
+                'interpretability': 'Low to medium (depends on base models).',
+                'maintenance': 'High (monitor all base models, retrain ensemble logic).',
+                'example_hyperparameters': 'weights=[0.4, 0.3, 0.3], voting="soft"',
+                'not_for': 'Situations where speed is critical or only one model is reliable.',
                 'accuracy': 'Very High',
                 'speed': 'Medium'
             },
@@ -67,6 +95,13 @@ class ModelInfo:
                 'use_case': 'Advanced pattern recognition, market sentiment analysis, and multi-factor modeling.',
                 'limitations': 'May overfit on small data; requires significant computational resources.',
                 'example': 'Use Transformer to analyze multi-factor influences on stock prices, including news and technical indicators.',
+                'data_requirements': 'Large, sequential datasets; multi-factor or multi-modal data.',
+                'best_market_conditions': 'Complex, multi-factor markets; sentiment-driven moves.',
+                'worst_market_conditions': 'Small datasets, simple/linear relationships.',
+                'interpretability': 'Low (attention maps can help, but still complex).',
+                'maintenance': 'High (requires GPU/TPU, regular retraining).',
+                'example_hyperparameters': 'layers=4, heads=8, d_model=128, dropout=0.1',
+                'not_for': 'Small datasets, simple regression/classification tasks.',
                 'accuracy': 'Very High',
                 'speed': 'Medium-Slow'
             },
@@ -80,6 +115,13 @@ class ModelInfo:
                 'use_case': 'Short- and medium-term trend prediction with efficient training.',
                 'limitations': 'Not as powerful as LSTM for highly complex patterns.',
                 'example': 'Use GRU for quick, efficient stock price predictions on daily or weekly data.',
+                'data_requirements': 'Sequential/time series data, moderate to large dataset.',
+                'best_market_conditions': 'Markets with short- to medium-term trends.',
+                'worst_market_conditions': 'Highly irregular or random-walk markets.',
+                'interpretability': 'Low (black-box neural network).',
+                'maintenance': 'Medium (monitor for drift, retrain as needed).',
+                'example_hyperparameters': 'layers=1, units=32, dropout=0.1, sequence_length=30',
+                'not_for': 'Very small datasets, highly complex long-term dependencies.',
                 'accuracy': 'High',
                 'speed': 'Fast-Medium'
             },
@@ -93,6 +135,13 @@ class ModelInfo:
                 'use_case': 'Ultimate consensus prediction for highest reliability and accuracy.',
                 'limitations': 'Requires all base models to be well-tuned; can be slow to train and predict.',
                 'example': 'Use Stacking for final portfolio allocation decisions, combining all model outputs.',
+                'data_requirements': 'All data required by base models; meta-features for stacking.',
+                'best_market_conditions': 'Diverse market conditions where no single model is best.',
+                'worst_market_conditions': 'When base models are all weak or highly correlated.',
+                'interpretability': 'Low (meta-model is a black box).',
+                'maintenance': 'High (monitor all base and meta models).',
+                'example_hyperparameters': 'meta_model=LogisticRegression, base_models=[XGBoost, LSTM, Prophet]',
+                'not_for': 'Simple problems where a single model suffices.',
                 'accuracy': 'Very High',
                 'speed': 'Medium'
             }
@@ -147,6 +196,13 @@ class ModelInfo:
                     st.markdown(f"**Best Use Case:** {info['use_case']}")
                     st.markdown(f"**Limitations:** {info['limitations']}")
                     st.markdown(f"**Example Scenario:** {info['example']}")
+                    st.markdown(f"**Data Requirements:** {info.get('data_requirements', '-')}")
+                    st.markdown(f"**Best Market Conditions:** {info.get('best_market_conditions', '-')}")
+                    st.markdown(f"**Worst Market Conditions:** {info.get('worst_market_conditions', '-')}")
+                    st.markdown(f"**Interpretability:** {info.get('interpretability', '-')}")
+                    st.markdown(f"**Maintenance Complexity:** {info.get('maintenance', '-')}")
+                    st.markdown(f"**Example Hyperparameters:** {info.get('example_hyperparameters', '-')}")
+                    st.markdown(f"**When NOT to Use:** {info.get('not_for', '-')}")
                 
                 with col2:
                     st.metric("Accuracy", info['accuracy'])

@@ -1407,6 +1407,7 @@ class StockTrendAI:
             except Exception as e:
                 st.error(f"Error in predictions tab: {str(e)}")
                 st.info("Please refresh the page and try again.")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         with tab2:
             st.info("🟢 You are in the Portfolio Tracker tab.")
@@ -1477,6 +1478,7 @@ class StockTrendAI:
                     self.render_price_alerts()
             except Exception as e:
                 st.error(f"❌ Error in portfolio tab: {str(e)}")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         with tab3:
             st.info("🟢 You are in the Advanced Analytics tab.")
@@ -1508,6 +1510,7 @@ class StockTrendAI:
                 st.error(f"❌ Error in analytics tab: {str(e)}")
                 st.info("Please try refreshing the page or check your internet connection.")
                 st.expander("🔧 Debug Info").write(f"Error details: {type(e).__name__}: {str(e)}")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         with tab4:
             st.info("🟢 You are in the News & Sentiment tab.")
@@ -1526,6 +1529,7 @@ class StockTrendAI:
                 st.markdown("- Market sentiment analysis requires internet connection")
                 st.markdown("- News data may be limited for some stocks")
                 st.markdown("- Try refreshing the page in a few moments")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         with tab5:
             st.info("🟢 You are in the Advanced Tools tab.")
@@ -1674,6 +1678,7 @@ class StockTrendAI:
                         """)
             except Exception as e:
                 st.error(f"❌ Error in tools tab: {str(e)}")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         # Auto-refresh logic
         if auto_refresh:
@@ -2788,7 +2793,8 @@ if __name__ == "__main__":
                 
             except Exception as e:
                 st.error(f"❌ Error in prediction tab: {str(e)}")
-                st.info("Please try refreshing the page or selecting a different stock.")
+                st.info("Please refresh the page and try again.")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         with portfolio_tab:
             try:
@@ -2796,6 +2802,7 @@ if __name__ == "__main__":
                 app.portfolio_tracker.render_portfolio_tab()
             except Exception as e:
                 st.error(f"❌ Error in portfolio tab: {str(e)}")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         with analytics_tab:
             try:
@@ -2814,6 +2821,7 @@ if __name__ == "__main__":
                 st.error(f"❌ Error in analytics tab: {str(e)}")
                 st.info("Please try refreshing the page or check your internet connection.")
                 st.expander("🔧 Debug Info").write(f"Error details: {type(e).__name__}: {str(e)}")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         with news_tab:
             try:
@@ -2832,6 +2840,7 @@ if __name__ == "__main__":
                 st.markdown("- Market sentiment analysis requires internet connection")
                 st.markdown("- News data may be limited for some stocks")
                 st.markdown("- Try refreshing the page in a few moments")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         with tools_tab:
             try:
@@ -2839,6 +2848,7 @@ if __name__ == "__main__":
                 app.render_advanced_tools_tab()
             except Exception as e:
                 st.error(f"❌ Error in tools tab: {str(e)}")
+            st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
         # Auto-refresh logic
         if auto_refresh:

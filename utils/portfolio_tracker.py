@@ -380,14 +380,21 @@ class PortfolioTracker:
                 if st.form_submit_button("🚀 Add Holding"):
                     if symbol_input:
                         try:
-                            self.add_holding(
-                                symbol_input.upper(),
-                                quantity_input,
-                                price_input,
-                                purchase_date.isoformat()
-                            )
-                            st.success(f"✅ Added {quantity_input} shares of {symbol_input} to portfolio!")
-                            st.rerun()
+                            # Clean and validate symbol
+                            clean_symbol = self.clean_symbol(symbol_input.upper())
+                            from .data_fetcher import DataFetcher
+                            data_fetcher = DataFetcher()
+                            if data_fetcher.validate_symbol(clean_symbol):
+                                self.add_holding(
+                                    clean_symbol,
+                                    quantity_input,
+                                    price_input,
+                                    purchase_date.isoformat()
+                                )
+                                st.success(f"✅ Added {quantity_input} shares of {clean_symbol} to portfolio!")
+                                st.rerun()
+                            else:
+                                st.error(f"Invalid symbol: {clean_symbol}. Please check the symbol and try again.")
                         except Exception as e:
                             st.error(f"❌ Error adding holding: {str(e)}")
                     else:
@@ -430,9 +437,16 @@ class PortfolioTracker:
                 watch_symbol = st.text_input("Add to Watchlist")
                 if st.form_submit_button("👁️ Watch"):
                     if watch_symbol:
-                        self.add_to_watchlist(watch_symbol.upper(), watch_symbol.upper())
-                        st.success(f"✅ Added {watch_symbol} to watchlist!")
-                        st.rerun()
+                        # Clean and validate symbol
+                        clean_watch_symbol = self.clean_symbol(watch_symbol.upper())
+                        from .data_fetcher import DataFetcher
+                        data_fetcher = DataFetcher()
+                        if data_fetcher.validate_symbol(clean_watch_symbol):
+                            self.add_to_watchlist(clean_watch_symbol, clean_watch_symbol)
+                            st.success(f"✅ Added {clean_watch_symbol} to watchlist!")
+                            st.rerun()
+                        else:
+                            st.error(f"Invalid symbol: {clean_watch_symbol}. Please check the symbol and try again.")
         
         # Price alerts section
         st.markdown("### 🚨 Price Alerts")
@@ -456,6 +470,13 @@ class PortfolioTracker:
                 
                 if st.form_submit_button("🚨 Set Alert"):
                     if alert_symbol:
-                        self.add_price_alert(alert_symbol.upper(), target_price, alert_type)
-                        st.success(f"✅ Alert set for {alert_symbol}!")
-                        st.rerun()
+                        # Clean and validate symbol
+                        clean_alert_symbol = self.clean_symbol(alert_symbol.upper())
+                        from .data_fetcher import DataFetcher
+                        data_fetcher = DataFetcher()
+                        if data_fetcher.validate_symbol(clean_alert_symbol):
+                            self.add_price_alert(clean_alert_symbol, target_price, alert_type)
+                            st.success(f"✅ Alert set for {clean_alert_symbol}!")
+                            st.rerun()
+                        else:
+                            st.error(f"Invalid symbol: {clean_alert_symbol}. Please check the symbol and try again.")

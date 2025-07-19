@@ -41,9 +41,19 @@ class AdvancedAnalytics:
         """Perform correlation analysis between multiple stocks"""
         price_data = {}
         
+        # Clean all symbols before fetching data
+        def clean_symbol(symbol):
+            if symbol.endswith('.NS.NS'):
+                return symbol.replace('.NS.NS', '.NS')
+            elif symbol.endswith('.NS'):
+                return symbol
+            else:
+                return symbol + '.NS'
+        
         for symbol in symbols:
             try:
-                data = data_fetcher.get_stock_data(symbol, period)
+                clean_sym = clean_symbol(symbol)
+                data = data_fetcher.get_stock_data(clean_sym, period)
                 if data is not None and not data.empty:
                     price_data[symbol] = data['Close'].pct_change().dropna()
             except Exception as e:

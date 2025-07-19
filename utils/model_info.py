@@ -9,9 +9,12 @@ class ModelInfo:
                 'icon': '🚀',
                 'name': 'XGBoost (Speed)',
                 'type': 'Gradient Boosting',
-                'description': 'High-performance gradient boosting model optimized for speed and accuracy',
-                'strengths': ['Fast prediction', 'Good with structured data', 'Feature importance'],
-                'use_case': 'Quick market analysis and trend detection',
+                'description': 'XGBoost is a high-performance gradient boosting model optimized for speed and accuracy. It is widely used in structured/tabular data competitions and excels at handling large datasets with many features. XGBoost uses an ensemble of decision trees and advanced regularization to prevent overfitting.',
+                'strengths': ['Fast prediction and training', 'Handles missing data well', 'Feature importance analysis', 'Robust to outliers', 'Scalable to large datasets'],
+                'weaknesses': ['Not ideal for sequential/time series data', 'Requires careful hyperparameter tuning', 'Can overfit on small datasets'],
+                'use_case': 'Quick market analysis, feature-driven predictions, and trend detection in structured data.',
+                'limitations': 'Not suitable for capturing long-term dependencies or sequential patterns.',
+                'example': 'Use XGBoost for rapid screening of stocks based on technical indicators and fundamentals.',
                 'accuracy': 'Medium-High',
                 'speed': 'Very Fast'
             },
@@ -19,9 +22,12 @@ class ModelInfo:
                 'icon': '🧠',
                 'name': 'LSTM (Deep Learning)',
                 'type': 'Recurrent Neural Network',
-                'description': 'Long Short-Term Memory network for capturing sequential patterns in stock data',
-                'strengths': ['Sequential pattern recognition', 'Memory of past events', 'Complex relationships'],
-                'use_case': 'Long-term trend analysis and pattern recognition',
+                'description': 'LSTM (Long Short-Term Memory) networks are a type of RNN designed to capture long-term dependencies in sequential data. They are effective for time series forecasting, especially when past events influence future outcomes. LSTMs use memory cells and gates to control information flow.',
+                'strengths': ['Captures long-term sequential patterns', 'Good for noisy time series', 'Handles variable-length sequences'],
+                'weaknesses': ['Slower to train', 'Requires more data', 'Can be sensitive to hyperparameters'],
+                'use_case': 'Long-term trend analysis, pattern recognition, and forecasting in stock prices.',
+                'limitations': 'May overfit on small datasets; less interpretable than tree models.',
+                'example': 'Use LSTM to predict stock prices based on historical price movements and volume.',
                 'accuracy': 'High',
                 'speed': 'Medium'
             },
@@ -29,9 +35,12 @@ class ModelInfo:
                 'icon': '📈',
                 'name': 'Prophet (Time Series)',
                 'type': 'Time Series Forecasting',
-                'description': 'Facebook Prophet model specialized in time series forecasting with seasonality',
-                'strengths': ['Seasonality detection', 'Trend analysis', 'Holiday effects'],
-                'use_case': 'Seasonal trend prediction and long-term forecasting',
+                'description': 'Prophet is a time series forecasting model developed by Facebook. It is designed to handle seasonality, holidays, and trend changes automatically. Prophet is robust to missing data and outliers, making it suitable for business and financial forecasting.',
+                'strengths': ['Automatic seasonality detection', 'Handles missing data', 'Easy to use and interpret', 'Good for business/financial data'],
+                'weaknesses': ['Limited to additive models', 'Not ideal for highly non-linear patterns', 'Less flexible than deep learning models'],
+                'use_case': 'Seasonal trend prediction, long-term forecasting, and business planning.',
+                'limitations': 'Not suitable for high-frequency or highly volatile data.',
+                'example': 'Use Prophet to forecast monthly or quarterly stock trends, accounting for holidays and seasonality.',
                 'accuracy': 'High',
                 'speed': 'Fast'
             },
@@ -39,9 +48,12 @@ class ModelInfo:
                 'icon': '🎯',
                 'name': 'Ensemble (Multi-Model)',
                 'type': 'Ensemble Learning',
-                'description': 'Combines multiple machine learning algorithms for robust predictions',
-                'strengths': ['Reduced overfitting', 'Higher accuracy', 'Multiple perspectives'],
-                'use_case': 'Comprehensive analysis with multiple model consensus',
+                'description': 'The Ensemble model combines multiple machine learning algorithms (e.g., XGBoost, LSTM, Prophet) to produce more robust and accurate predictions. By aggregating the strengths of each model, ensemble methods reduce overfitting and improve generalization.',
+                'strengths': ['Reduces overfitting', 'Higher accuracy', 'Combines multiple perspectives', 'Robust to noise'],
+                'weaknesses': ['Slower inference', 'Complex to interpret', 'Requires more resources'],
+                'use_case': 'Comprehensive analysis with consensus from multiple models.',
+                'limitations': 'May be slower and harder to debug; requires all base models to be well-tuned.',
+                'example': 'Use Ensemble for final buy/sell decisions by combining predictions from XGBoost, LSTM, and Prophet.',
                 'accuracy': 'Very High',
                 'speed': 'Medium'
             },
@@ -49,9 +61,12 @@ class ModelInfo:
                 'icon': '⚡',
                 'name': 'Transformer (Attention)',
                 'type': 'Attention Mechanism',
-                'description': 'State-of-the-art attention-based model for complex pattern recognition',
-                'strengths': ['Attention mechanism', 'Complex patterns', 'Market relationships'],
-                'use_case': 'Advanced pattern recognition and market sentiment analysis',
+                'description': 'Transformers use attention mechanisms to model complex relationships in sequential data. They are state-of-the-art for many NLP and time series tasks, capturing both short- and long-term dependencies. Transformers can process all time steps in parallel, making them efficient for large datasets.',
+                'strengths': ['Captures complex patterns', 'Handles long-range dependencies', 'Parallel processing', 'Adaptable to various data types'],
+                'weaknesses': ['Requires large datasets', 'High memory usage', 'Complex architecture'],
+                'use_case': 'Advanced pattern recognition, market sentiment analysis, and multi-factor modeling.',
+                'limitations': 'May overfit on small data; requires significant computational resources.',
+                'example': 'Use Transformer to analyze multi-factor influences on stock prices, including news and technical indicators.',
                 'accuracy': 'Very High',
                 'speed': 'Medium-Slow'
             },
@@ -59,9 +74,12 @@ class ModelInfo:
                 'icon': '🔥',
                 'name': 'GRU (Gated Recurrent Unit)',
                 'type': 'Recurrent Neural Network',
-                'description': 'GRU is a type of RNN that is efficient for sequential data and captures temporal dependencies with fewer parameters than LSTM.',
-                'strengths': ['Efficient sequential modeling', 'Faster training than LSTM', 'Good for time series'],
-                'use_case': 'Short- and medium-term trend prediction with efficient training',
+                'description': 'GRU is a simplified version of LSTM that is efficient for sequential data and captures temporal dependencies with fewer parameters. It is faster to train and often performs similarly to LSTM on time series tasks.',
+                'strengths': ['Efficient sequential modeling', 'Faster training than LSTM', 'Good for time series', 'Fewer parameters'],
+                'weaknesses': ['May underperform on very complex sequences', 'Less expressive than LSTM'],
+                'use_case': 'Short- and medium-term trend prediction with efficient training.',
+                'limitations': 'Not as powerful as LSTM for highly complex patterns.',
+                'example': 'Use GRU for quick, efficient stock price predictions on daily or weekly data.',
                 'accuracy': 'High',
                 'speed': 'Fast-Medium'
             },
@@ -69,9 +87,12 @@ class ModelInfo:
                 'icon': '🏆',
                 'name': 'Stacking Ensemble',
                 'type': 'Meta-Ensemble Learning',
-                'description': 'Combines predictions from multiple base models using a meta-model for improved accuracy and robustness.',
-                'strengths': ['Combines strengths of all models', 'Reduces bias and variance', 'Best overall performance'],
-                'use_case': 'Ultimate consensus prediction for highest reliability',
+                'description': 'Stacking combines predictions from multiple base models using a meta-model (e.g., logistic regression) for improved accuracy and robustness. It leverages the strengths of all models and reduces both bias and variance.',
+                'strengths': ['Combines strengths of all models', 'Reduces bias and variance', 'Best overall performance', 'Highly robust'],
+                'weaknesses': ['Complex to implement', 'Requires careful validation', 'Slower inference'],
+                'use_case': 'Ultimate consensus prediction for highest reliability and accuracy.',
+                'limitations': 'Requires all base models to be well-tuned; can be slow to train and predict.',
+                'example': 'Use Stacking for final portfolio allocation decisions, combining all model outputs.',
                 'accuracy': 'Very High',
                 'speed': 'Medium'
             }
@@ -120,7 +141,12 @@ class ModelInfo:
                     st.markdown("**Key Strengths:**")
                     for strength in info['strengths']:
                         st.markdown(f"• {strength}")
+                    st.markdown("**Weaknesses:**")
+                    for weakness in info.get('weaknesses', []):
+                        st.markdown(f"• {weakness}")
                     st.markdown(f"**Best Use Case:** {info['use_case']}")
+                    st.markdown(f"**Limitations:** {info['limitations']}")
+                    st.markdown(f"**Example Scenario:** {info['example']}")
                 
                 with col2:
                     st.metric("Accuracy", info['accuracy'])

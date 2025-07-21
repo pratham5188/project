@@ -377,10 +377,19 @@ class StockTrendAI:
         selected_period_display = st.sidebar.selectbox(
             "Analysis Period",
             list(period_options.keys()),
-            index=5  # Default to "1 Year"
+            index=5,  # Default to "1 Year" 
+            help="💡 Recommended: 1 Year for balanced accuracy and relevance"
         )
         
         period = period_options[selected_period_display]
+        
+        # Smart period recommendations and warnings
+        if period in ['1d', '5d', '1mo']:
+            st.sidebar.warning("⚠️ Short periods may reduce prediction accuracy. Consider 3+ months for better results.")
+        elif period in ['10y', 'max']:
+            st.sidebar.warning("⚠️ Very long periods may include outdated market patterns. Consider 1-2 years for current relevance.")
+        elif period in ['6mo', '1y']:
+            st.sidebar.success("✅ Optimal period selected for accurate predictions!")
         
         # Store period in session state
         st.session_state.selected_period = period

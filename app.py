@@ -2383,37 +2383,119 @@ class StockTrendAI:
             st.plotly_chart(fig, use_container_width=True)
     
     def render_sentiment_distribution(self, sentiment_data):
-        """Render sentiment distribution chart"""
+        """Render sentiment distribution chart with improved text visibility"""
         if not sentiment_data:
             return
         
         distribution = sentiment_data['sentiment_distribution']
         
-        # Create pie chart
+        # Create enhanced pie chart with visible text
+        labels = ['Positive', 'Negative', 'Neutral']
+        values = [distribution['positive'], distribution['negative'], distribution['neutral']]
+        colors = ['#00ff88', '#ff0044', '#ffaa00']
+        
+        # Create text labels with both count and percentage
+        total_articles = sum(values)
+        text_labels = []
+        for i, (label, value) in enumerate(zip(labels, values)):
+            if value > 0:
+                percentage = (value / total_articles) * 100
+                text_labels.append(f"{label}<br>{value}<br>({percentage:.1f}%)")
+            else:
+                text_labels.append(f"{label}<br>0<br>(0%)")
+        
+        # Create pie chart with enhanced visibility
         fig = go.Figure(data=[go.Pie(
-            labels=['Positive', 'Negative', 'Neutral'],
-            values=[distribution['positive'], distribution['negative'], distribution['neutral']],
-            hole=0.3,
-            marker_colors=['#00ff88', '#ff0044', '#ffffff']
+            labels=labels,
+            values=values,
+            text=text_labels,
+            textinfo='text',
+            textposition='inside',
+            textfont=dict(
+                size=16,
+                color='white',
+                family='Arial Black'
+            ),
+            hole=0.4,
+            marker=dict(
+                colors=colors,
+                line=dict(color='#ffffff', width=3)
+            ),
+            hovertemplate='<b>%{label}</b><br>' +
+                         'Count: %{value}<br>' +
+                         'Percentage: %{percent}<br>' +
+                         '<extra></extra>',
+            showlegend=True,
+            pull=[0.05, 0.05, 0.05]  # Slightly separate slices for better visibility
         )])
         
         fig.update_layout(
             title=dict(
-                text="Sentiment Distribution",
-                font=dict(color='white', size=18)
+                text=f"📊 Sentiment Distribution<br><sub style='font-size:14px;'>{total_articles} items analyzed</sub>",
+                font=dict(color='white', size=20, family='Arial Black'),
+                x=0.5,
+                y=0.95
             ),
             template="plotly_dark",
-            height=400,
-            paper_bgcolor='black',
-            plot_bgcolor='black',
-            font=dict(color='white', family='Arial', size=12),
+            height=500,
+            paper_bgcolor='rgba(0,0,0,0.1)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white', family='Arial', size=14),
             legend=dict(
-                font=dict(color='white'),
-                bgcolor='rgba(0,0,0,0.5)'
-            )
+                font=dict(color='white', size=14, family='Arial Bold'),
+                bgcolor='rgba(0,0,0,0.8)',
+                bordercolor='white',
+                borderwidth=2,
+                orientation='h',
+                x=0.5,
+                xanchor='center',
+                y=-0.1
+            ),
+            margin=dict(t=100, b=80, l=60, r=60),
+            annotations=[
+                dict(
+                    text=f"Total: {total_articles}",
+                    x=0.5, y=0.5,
+                    font=dict(size=18, color='white', family='Arial Bold'),
+                    showarrow=False
+                )
+            ]
+        )
+        
+        # Add custom styling for better visibility
+        fig.update_traces(
+            textposition='inside',
+            insidetextorientation='radial'
         )
         
         st.plotly_chart(fig, use_container_width=True)
+        
+        # Add summary metrics below chart for extra clarity
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            pos_pct = (values[0] / total_articles * 100) if total_articles > 0 else 0
+            st.metric(
+                "🟢 Positive", 
+                f"{values[0]}", 
+                f"{pos_pct:.1f}%"
+            )
+        
+        with col2:
+            neg_pct = (values[1] / total_articles * 100) if total_articles > 0 else 0
+            st.metric(
+                "🔴 Negative", 
+                f"{values[1]}", 
+                f"{neg_pct:.1f}%"
+            )
+        
+        with col3:
+            neu_pct = (values[2] / total_articles * 100) if total_articles > 0 else 0
+            st.metric(
+                "🟡 Neutral", 
+                f"{values[2]}", 
+                f"{neu_pct:.1f}%"
+            )
     
     def render_stock_comparison(self, compare_stocks):
         """Render stock comparison with proper error handling"""

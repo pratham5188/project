@@ -736,7 +736,7 @@ class NewsSentimentAnalyzer:
                 st.info("🔧 Please try refreshing or contact support if the issue persists.")
 
     def _render_sentiment_chart(self, news_sentiment: Dict):
-        """Render sentiment distribution chart with improved error handling"""
+        """Render sentiment distribution chart with improved text visibility"""
         try:
             import plotly.graph_objects as go
             
@@ -752,7 +752,7 @@ class NewsSentimentAnalyzer:
                 st.warning("No sentiment data available for chart")
                 return
             
-            # Create enhanced pie chart
+            # Create enhanced pie chart with visible text
             labels = ['Positive', 'Negative', 'Neutral']
             values = [
                 distribution.get('positive', 0),
@@ -761,45 +761,131 @@ class NewsSentimentAnalyzer:
             ]
             colors = ['#00ff88', '#ff0044', '#ffaa00']
             
+            # Create text labels with both count and percentage
+            total_articles = sum(values)
+            text_labels = []
+            for i, (label, value) in enumerate(zip(labels, values)):
+                if value > 0:
+                    percentage = (value / total_articles) * 100
+                    text_labels.append(f"{label}<br>{value} articles<br>({percentage:.1f}%)")
+                else:
+                    text_labels.append(f"{label}<br>0 articles<br>(0%)")
+            
             fig = go.Figure(data=[go.Pie(
                 labels=labels,
                 values=values,
+                text=text_labels,
+                textinfo='text',
+                textposition='inside',
+                textfont=dict(
+                    size=16,
+                    color='white',
+                    family='Arial Black'
+                ),
                 hole=0.4,
-                marker=dict(colors=colors, line=dict(color='#000000', width=2)),
-                textfont=dict(size=14, color='white'),
-                hovertemplate='<b>%{label}</b><br>Count: %{value}<br>Percentage: %{percent}<extra></extra>'
+                marker=dict(
+                    colors=colors, 
+                    line=dict(color='#ffffff', width=3)
+                ),
+                hovertemplate='<b>%{label}</b><br>' +
+                             'Count: %{value}<br>' +
+                             'Percentage: %{percent}<br>' +
+                             '<extra></extra>',
+                showlegend=True,
+                pull=[0.05, 0.05, 0.05]  # Slightly separate slices for better visibility
             )])
             
             fig.update_layout(
                 title=dict(
-                    text=f"News Sentiment Distribution<br><sub>{sum(values)} articles analyzed</sub>",
-                    font=dict(color='white', size=18),
-                    x=0.5
+                    text=f"📊 News Sentiment Distribution<br><sub style='font-size:14px;'>{total_articles} articles analyzed</sub>",
+                    font=dict(color='white', size=20, family='Arial Black'),
+                    x=0.5,
+                    y=0.95
                 ),
                 template="plotly_dark",
-                paper_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0.1)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color='white', family='Arial', size=12),
-                height=450,
+                font=dict(color='white', family='Arial', size=14),
+                height=500,
                 legend=dict(
-                    font=dict(color='white', size=12),
-                    bgcolor='rgba(0,0,0,0.5)',
+                    font=dict(color='white', size=14, family='Arial Bold'),
+                    bgcolor='rgba(0,0,0,0.8)',
                     bordercolor='white',
-                    borderwidth=1
+                    borderwidth=2,
+                    orientation='h',
+                    x=0.5,
+                    xanchor='center',
+                    y=-0.1
                 ),
-                margin=dict(t=80, b=40, l=40, r=40)
+                margin=dict(t=100, b=80, l=60, r=60),
+                annotations=[
+                    dict(
+                        text=f"Total: {total_articles} Articles",
+                        x=0.5, y=0.5,
+                        font=dict(size=18, color='white', family='Arial Bold'),
+                        showarrow=False
+                    )
+                ]
+            )
+            
+            # Add custom styling for better visibility
+            fig.update_traces(
+                textposition='inside',
+                insidetextorientation='radial'
             )
             
             # Force chart refresh by adding unique key
             chart_key = f"sentiment_chart_{news_sentiment.get('symbol', 'unknown')}_{int(time.time())}"
             st.plotly_chart(fig, use_container_width=True, key=chart_key)
             
+            # Add summary below chart for extra clarity
+            st.markdown("### 📈 Sentiment Summary")
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                pos_pct = (values[0] / total_articles * 100) if total_articles > 0 else 0
+                st.metric(
+                    "🟢 Positive Articles", 
+                    f"{values[0]}", 
+                    f"{pos_pct:.1f}%"
+                )
+            
+            with col2:
+                neg_pct = (values[1] / total_articles * 100) if total_articles > 0 else 0
+                st.metric(
+                    "🔴 Negative Articles", 
+                    f"{values[1]}", 
+                    f"{neg_pct:.1f}%"
+                )
+            
+            with col3:
+                neu_pct = (values[2] / total_articles * 100) if total_articles > 0 else 0
+                st.metric(
+                    "🟡 Neutral Articles", 
+                    f"{values[2]}", 
+                    f"{neu_pct:.1f}%"
+                )
+            
         except Exception as e:
             st.error(f"Could not render sentiment chart: {str(e)}")
-            # Fallback display
+            # Enhanced fallback display
             distribution = news_sentiment.get('sentiment_distribution', {})
             if distribution:
-                st.markdown("**Sentiment Summary:**")
-                st.markdown(f"- 🟢 Positive: {distribution.get('positive', 0)} articles")
-                st.markdown(f"- 🔴 Negative: {distribution.get('negative', 0)} articles") 
-                st.markdown(f"- 🟡 Neutral: {distribution.get('neutral', 0)} articles")
+                st.markdown("### 📊 Sentiment Distribution (Text View)")
+                total = sum(distribution.values())
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    pos_count = distribution.get('positive', 0)
+                    pos_pct = (pos_count / total * 100) if total > 0 else 0
+                    st.success(f"🟢 **Positive**: {pos_count} articles ({pos_pct:.1f}%)")
+                
+                with col2:
+                    neg_count = distribution.get('negative', 0)
+                    neg_pct = (neg_count / total * 100) if total > 0 else 0
+                    st.error(f"🔴 **Negative**: {neg_count} articles ({neg_pct:.1f}%)")
+                
+                with col3:
+                    neu_count = distribution.get('neutral', 0)
+                    neu_pct = (neu_count / total * 100) if total > 0 else 0
+                    st.info(f"🟡 **Neutral**: {neu_count} articles ({neu_pct:.1f}%)")

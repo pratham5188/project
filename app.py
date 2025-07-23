@@ -816,6 +816,7 @@ class StockTrendAI:
             # Initialize aggregation variables
             total_confidence = 0
             total_weighted_price = 0
+            total_weighted_today_price = 0
             total_weights = 0
             up_votes = 0
             down_votes = 0
@@ -844,6 +845,7 @@ class StockTrendAI:
                     confidence = pred_data.get('confidence', 0)
                     direction = pred_data.get('direction', 'HOLD')
                     predicted_price = pred_data.get('predicted_price', current_price)
+                    prediction = pred_data.get('prediction', current_price)  # Today's prediction
                     
                     # Validate numeric values
                     if not isinstance(confidence, (int, float)) or confidence < 0 or confidence > 100:
@@ -851,6 +853,9 @@ class StockTrendAI:
                     
                     if not isinstance(predicted_price, (int, float)) or predicted_price <= 0:
                         predicted_price = current_price
+                    
+                    if not isinstance(prediction, (int, float)) or prediction <= 0:
+                        prediction = current_price
                     
                     if direction not in ['UP', 'DOWN', 'HOLD']:
                         direction = 'HOLD'
@@ -862,6 +867,7 @@ class StockTrendAI:
                     # Aggregate confidence and price
                     total_confidence += confidence * weight
                     total_weighted_price += predicted_price * confidence_weight
+                    total_weighted_today_price += prediction * confidence_weight
                     total_weights += weight
                     
                     # Count direction votes
@@ -878,6 +884,7 @@ class StockTrendAI:
                         'direction': direction,
                         'confidence': confidence,
                         'predicted_price': predicted_price,
+                        'today_prediction': prediction,
                         'weight': weight
                     })
                     
@@ -894,6 +901,7 @@ class StockTrendAI:
             # Calculate combined metrics
             avg_confidence = total_confidence / total_weights
             weighted_avg_price = total_weighted_price / (total_weights * avg_confidence / 100.0) if avg_confidence > 0 else current_price
+            weighted_avg_today_price = total_weighted_today_price / (total_weights * avg_confidence / 100.0) if avg_confidence > 0 else current_price
             
             # Determine overall direction
             total_direction_votes = up_votes + down_votes + hold_votes
@@ -919,27 +927,42 @@ class StockTrendAI:
             price_change = weighted_avg_price - current_price
             price_change_percent = (price_change / current_price) * 100 if current_price > 0 else 0
             
+            # Calculate today's price change
+            today_price_change = weighted_avg_today_price - current_price
+            today_price_change_percent = (today_price_change / current_price) * 100 if current_price > 0 else 0
+            
             # Generate reasoning
             reasoning_parts = []
             reasoning_parts.append(f"Combined analysis of {valid_predictions} AI models")
             reasoning_parts.append(f"Weighted average confidence: {avg_confidence:.1f}%")
             reasoning_parts.append(f"Consensus strength: {consensus_strength:.1f}%")
             
-            if abs(price_change_percent) > 5:
-                reasoning_parts.append(f"Significant price movement expected: {price_change_percent:+.1f}%")
-            elif abs(price_change_percent) > 2:
-                reasoning_parts.append(f"Moderate price movement expected: {price_change_percent:+.1f}%")
+            # Add today's prediction reasoning
+            if abs(today_price_change_percent) > 3:
+                reasoning_parts.append(f"Today's prediction: {today_price_change_percent:+.1f}% movement expected")
+            elif abs(today_price_change_percent) > 1:
+                reasoning_parts.append(f"Today's prediction: {today_price_change_percent:+.1f}% moderate movement")
             else:
-                reasoning_parts.append(f"Minor price movement expected: {price_change_percent:+.1f}%")
+                reasoning_parts.append(f"Today's prediction: {today_price_change_percent:+.1f}% minor movement")
+            
+            if abs(price_change_percent) > 5:
+                reasoning_parts.append(f"Tomorrow: Significant movement expected {price_change_percent:+.1f}%")
+            elif abs(price_change_percent) > 2:
+                reasoning_parts.append(f"Tomorrow: Moderate movement expected {price_change_percent:+.1f}%")
+            else:
+                reasoning_parts.append(f"Tomorrow: Minor movement expected {price_change_percent:+.1f}%")
             
             return {
                 'direction': combined_direction,
                 'confidence': avg_confidence,
                 'predicted_price': weighted_avg_price,
+                'today_predicted_price': weighted_avg_today_price,
                 'consensus_strength': consensus_strength,
                 'model_count': valid_predictions,
                 'price_change': price_change,
                 'price_change_percent': price_change_percent,
+                'today_price_change': today_price_change,
+                'today_price_change_percent': today_price_change_percent,
                 'up_votes_percent': (up_votes / total_direction_votes) * 100 if total_direction_votes > 0 else 0,
                 'down_votes_percent': (down_votes / total_direction_votes) * 100 if total_direction_votes > 0 else 0,
                 'hold_votes_percent': (hold_votes / total_direction_votes) * 100 if total_direction_votes > 0 else 0,
@@ -960,19 +983,15 @@ class StockTrendAI:
         direction = combined_pred['direction']
         confidence = combined_pred['confidence']
         predicted_price = combined_pred['predicted_price']
+        today_predicted_price = combined_pred.get('today_predicted_price', current_price)
         consensus_strength = combined_pred['consensus_strength']
         model_count = combined_pred['model_count']
         
         # Get current date and prediction date
         current_date = datetime.now().strftime("%d %b %Y")
-        if is_today:
-            prediction_date = current_date
-            card_title = "🕒 AI Today's Live Analysis"
-            time_label = "Live Analysis"
-        else:
-            prediction_date = (datetime.now() + timedelta(days=1)).strftime("%d %b %Y")
-            card_title = "🚀 AI Meta-Ensemble Prediction"
-            time_label = "Tomorrow"
+        today_date = datetime.now().strftime("%d %b %Y")
+        prediction_date = (datetime.now() + timedelta(days=1)).strftime("%d %b %Y")
+        card_title = "🚀 AI Meta-Ensemble Prediction"
         
         # Determine colors and styling
         if direction == 'UP':
@@ -995,6 +1014,10 @@ class StockTrendAI:
         # Calculate price change
         price_change = predicted_price - current_price
         change_percent = (price_change / current_price) * 100
+        
+        # Calculate today's price change
+        today_price_change = today_predicted_price - current_price
+        today_change_percent = (today_price_change / current_price) * 100
         
         st.markdown(f"### {card_title}")
         st.markdown(f"""
@@ -1020,20 +1043,26 @@ class StockTrendAI:
             <div style="font-size: 3rem; color: {border_color}; margin: 1rem 0; text-shadow: 0 0 20px {border_color};">
                 {arrow} {direction}
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
                 <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Current Price</div>
                     <div style="color: #ffffff; font-size: 1.3rem; font-weight: bold;">₹{current_price:.2f}</div>
                     <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{current_date}</div>
                 </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid #ff6b35;">
+                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Today's Prediction</div>
+                    <div style="color: #ff6b35; font-size: 1.3rem; font-weight: bold;">₹{today_predicted_price:.2f}</div>
+                    <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{today_date}</div>
+                </div>
                 <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid {border_color};">
-                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">{"Target Price" if is_today else "Predicted Price"}</div>
+                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Tomorrow's Prediction</div>
                     <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">₹{predicted_price:.2f}</div>
                     <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{prediction_date}</div>
                 </div>
                 <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
                     <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Expected Change</div>
-                    <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">{price_change:+.2f} ({change_percent:+.2f}%)</div>
+                    <div style="color: {border_color}; font-size: 1.1rem; font-weight: bold;">Today: {today_change_percent:+.1f}%</div>
+                    <div style="color: {border_color}; font-size: 1.1rem; font-weight: bold;">Tomorrow: {change_percent:+.1f}%</div>
                 </div>
             </div>
             <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; margin-top: 1rem;">

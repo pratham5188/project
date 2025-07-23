@@ -976,149 +976,193 @@ class StockTrendAI:
             return None
     
     def render_combined_prediction_card(self, combined_pred, current_price, company_name=None, is_today=False):
-        """Render the main combined prediction card"""
-        if not combined_pred:
-            return
-        
-        direction = combined_pred['direction']
-        confidence = combined_pred['confidence']
-        predicted_price = combined_pred['predicted_price']
-        today_predicted_price = combined_pred.get('today_predicted_price', current_price)
-        consensus_strength = combined_pred['consensus_strength']
-        model_count = combined_pred['model_count']
-        
-        # Get current date and prediction date
-        current_date = datetime.now().strftime("%d %b %Y")
-        today_date = datetime.now().strftime("%d %b %Y")
-        prediction_date = (datetime.now() + timedelta(days=1)).strftime("%d %b %Y")
-        card_title = "🚀 AI Meta-Ensemble Prediction"
-        
-        # Determine colors and styling
-        if direction == 'UP':
-            color_class = "bullish"
-            arrow = "⬆️"
-            border_color = "#00ff88"
-        elif direction == 'DOWN':
-            color_class = "bearish"
-            arrow = "⬇️"
-            border_color = "#ff0044"
-        else:
-            color_class = "neutral"
-            arrow = "➡️"
-            border_color = "#ffaa00"
-        
-        # Generate confidence indicator
-        confidence_indicator = self.get_confidence_indicator(confidence)
-        confidence_color = self.get_confidence_color(confidence)
-        
-        # Calculate price change
-        price_change = predicted_price - current_price
-        change_percent = (price_change / current_price) * 100
-        
-        # Calculate today's price change
-        today_price_change = today_predicted_price - current_price
-        today_change_percent = (today_price_change / current_price) * 100
-        
-        st.markdown(f"### {card_title}")
-        st.markdown(f"""
-        <div style="
-            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(26,26,46,0.8));
-            border: 3px solid {border_color};
-            border-radius: 20px;
-            padding: 2rem;
-            margin: 1rem 0;
-            text-align: center;
-            box-shadow: 0 0 30px {border_color}50;
-            backdrop-filter: blur(10px);
-        ">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <div style="font-size: 1.2rem; color: {border_color}; font-weight: bold;">
-                    🤖 {model_count} AI Models Combined ({time_label})
-                    <div style='font-size:0.9rem; color:#aaa; font-weight:normal; margin-top:2px;'>{company_name}</div>
-                </div>
-                <div style="font-size: 1.2rem; color: {confidence_color};">
-                    {confidence_indicator} {confidence:.1f}%
-                </div>
-            </div>
-            <div style="font-size: 3rem; color: {border_color}; margin: 1rem 0; text-shadow: 0 0 20px {border_color};">
-                {arrow} {direction}
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
-                <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
-                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Current Price</div>
-                    <div style="color: #ffffff; font-size: 1.3rem; font-weight: bold;">₹{current_price:.2f}</div>
-                    <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{current_date}</div>
-                </div>
-                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid #ff6b35;">
-                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Today's Prediction</div>
-                    <div style="color: #ff6b35; font-size: 1.3rem; font-weight: bold;">₹{today_predicted_price:.2f}</div>
-                    <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{today_date}</div>
-                </div>
-                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid {border_color};">
-                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Tomorrow's Prediction</div>
-                    <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">₹{predicted_price:.2f}</div>
-                    <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{prediction_date}</div>
-                </div>
-                <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
-                    <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Expected Change</div>
-                    <div style="color: {border_color}; font-size: 1.1rem; font-weight: bold;">Today: {today_change_percent:+.1f}%</div>
-                    <div style="color: {border_color}; font-size: 1.1rem; font-weight: bold;">Tomorrow: {change_percent:+.1f}%</div>
-                </div>
-            </div>
-            <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-                <div style="color: #ffffff; font-size: 1rem; margin-bottom: 0.5rem;">📊 Consensus Analysis</div>
-                <div style="color: {confidence_color}; font-size: 0.9rem;">
-                    {consensus_strength:.1f}% model agreement | Combined confidence from {model_count} AI algorithms
-                </div>
-            </div>
+        """Render the main combined prediction card with comprehensive error handling"""
+        try:
+            if not combined_pred:
+                st.warning("⚠️ Unable to generate combined prediction. Please ensure at least one model has valid data.")
+                return
+            
+            # Extract prediction data with safe access and validation
+            direction = combined_pred.get('direction', 'HOLD')
+            confidence = combined_pred.get('confidence', 0)
+            predicted_price = combined_pred.get('predicted_price', current_price)
+            today_predicted_price = combined_pred.get('today_predicted_price', current_price)
+            consensus_strength = combined_pred.get('consensus_strength', 0)
+            model_count = combined_pred.get('model_count', 0)
+            reasoning = combined_pred.get('reasoning', 'Analysis in progress...')
+            
+            # Validate and sanitize numeric values
+            try:
+                confidence = max(0, min(100, float(confidence) if confidence is not None else 0))
+                predicted_price = max(0.01, float(predicted_price) if predicted_price is not None else current_price)
+                today_predicted_price = max(0.01, float(today_predicted_price) if today_predicted_price is not None else current_price)
+                consensus_strength = max(0, min(100, float(consensus_strength) if consensus_strength is not None else 0))
+                model_count = max(0, int(model_count) if model_count is not None else 0)
+                current_price = max(0.01, float(current_price) if current_price is not None else 100)
+            except (ValueError, TypeError) as e:
+                st.error(f"❌ Invalid prediction data: {str(e)}. Using default values.")
+                confidence = 50
+                predicted_price = current_price
+                today_predicted_price = current_price
+                consensus_strength = 0
+                model_count = 0
+            
+            # Validate direction
+            if direction not in ['UP', 'DOWN', 'HOLD']:
+                direction = 'HOLD'
+            
+            # Get current date and prediction date
+            current_date = datetime.now().strftime("%d %b %Y")
+            today_date = datetime.now().strftime("%d %b %Y")
+            prediction_date = (datetime.now() + timedelta(days=1)).strftime("%d %b %Y")
+            card_title = "🚀 AI Meta-Ensemble Prediction"
+            
+            # Determine colors and styling
+            if direction == 'UP':
+                color_class = "bullish"
+                arrow = "⬆️"
+                border_color = "#00ff88"
+            elif direction == 'DOWN':
+                color_class = "bearish"
+                arrow = "⬇️"
+                border_color = "#ff0044"
+            else:
+                color_class = "neutral"
+                arrow = "➡️"
+                border_color = "#ffaa00"
+            
+            # Generate confidence indicator
+            confidence_indicator = self.get_confidence_indicator(confidence)
+            confidence_color = self.get_confidence_color(confidence)
+            
+            # Calculate price change
+            price_change = predicted_price - current_price
+            change_percent = (price_change / current_price) * 100
+            
+            # Calculate today's price change
+            today_price_change = today_predicted_price - current_price
+            today_change_percent = (today_price_change / current_price) * 100
+            
+            st.markdown(f"### {card_title}")
+            st.markdown(f"""
             <div style="
-                width: 100%; 
-                height: 6px; 
-                background-color: rgba(0,0,0,0.8); 
-                border-radius: 3px; 
-                margin-top: 1rem;
-                overflow: hidden;
+                background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(26,26,46,0.8));
+                border: 3px solid {border_color};
+                border-radius: 20px;
+                padding: 2rem;
+                margin: 1rem 0;
+                text-align: center;
+                box-shadow: 0 0 30px {border_color}50;
+                backdrop-filter: blur(10px);
             ">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="font-size: 1.2rem; color: {border_color}; font-weight: bold;">
+                        🤖 {model_count} AI Models Combined
+                        <div style='font-size:0.9rem; color:#aaa; font-weight:normal; margin-top:2px;'>{company_name}</div>
+                    </div>
+                    <div style="font-size: 1.2rem; color: {confidence_color};">
+                        {confidence_indicator} {confidence:.1f}%
+                    </div>
+                </div>
+                <div style="font-size: 3rem; color: {border_color}; margin: 1rem 0; text-shadow: 0 0 20px {border_color};">
+                    {arrow} {direction}
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin: 1.5rem 0;">
+                    <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
+                        <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Current Price</div>
+                        <div style="color: #ffffff; font-size: 1.3rem; font-weight: bold;">₹{current_price:.2f}</div>
+                        <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{current_date}</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid #ff6b35;">
+                        <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Today's Prediction</div>
+                        <div style="color: #ff6b35; font-size: 1.3rem; font-weight: bold;">₹{today_predicted_price:.2f}</div>
+                        <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{today_date}</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 10px; border: 1px solid {border_color};">
+                        <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Tomorrow's Prediction</div>
+                        <div style="color: {border_color}; font-size: 1.3rem; font-weight: bold;">₹{predicted_price:.2f}</div>
+                        <div style="color: #aaa; font-size: 0.8rem; margin-top: 0.3rem;">{prediction_date}</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.8); padding: 1rem; border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);">
+                        <div style="color: #ffffff; font-size: 0.9rem; margin-bottom: 0.5rem;">Expected Change</div>
+                        <div style="color: {border_color}; font-size: 1.1rem; font-weight: bold;">Today: {today_change_percent:+.1f}%</div>
+                        <div style="color: {border_color}; font-size: 1.1rem; font-weight: bold;">Tomorrow: {change_percent:+.1f}%</div>
+                    </div>
+                </div>
+                <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                    <div style="color: #ffffff; font-size: 1rem; margin-bottom: 0.5rem;">📊 Consensus Analysis</div>
+                    <div style="color: {confidence_color}; font-size: 0.9rem;">
+                        {consensus_strength:.1f}% model agreement | Combined confidence from {model_count} AI algorithms
+                    </div>
+                </div>
                 <div style="
-                    height: 100%; 
-                    width: {confidence}%; 
-                    background: linear-gradient(90deg, {confidence_color}, {border_color}); 
-                    border-radius: 3px;
-                    box-shadow: 0 0 10px {confidence_color};
-                "></div>
+                    width: 100%; 
+                    height: 6px; 
+                    background-color: rgba(0,0,0,0.8); 
+                    border-radius: 3px; 
+                    margin-top: 1rem;
+                    overflow: hidden;
+                ">
+                    <div style="
+                        height: 100%; 
+                        width: {confidence}%; 
+                        background: linear-gradient(90deg, {confidence_color}, {border_color}); 
+                        border-radius: 3px;
+                        box-shadow: 0 0 10px {confidence_color};
+                    "></div>
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
-        # Add a bar chart for model confidence/agreement
-        import plotly.graph_objects as go
-        model_names = [d['model'] for d in combined_pred['detailed_analysis']]
-        confidences = [d['confidence'] for d in combined_pred['detailed_analysis']]
-        directions = [d['direction'] for d in combined_pred['detailed_analysis']]
-        colors = [
-            '#00ff88' if d == 'UP' else '#ff0044' if d == 'DOWN' else '#ffaa00'
-            for d in directions
-        ]
-        fig = go.Figure(data=[
-            go.Bar(
-                x=model_names,
-                y=confidences,
-                marker_color=colors,
-                text=[f"{c:.1f}%" for c in confidences],
-                textposition='auto',
-                hovertext=directions,
-                name="Model Confidence (%)"
-            )
-        ])
-        fig.update_layout(
-            title="7 AI Models Confidence/Agreement",
-            xaxis_title="Model",
-            yaxis_title="Confidence (%)",
-            template="plotly_dark",
-            height=350,
-            plot_bgcolor='black',
-            paper_bgcolor='black'
-        )
-        st.plotly_chart(fig, use_container_width=True)
+            """, unsafe_allow_html=True)
+            
+            # Add a bar chart for model confidence/agreement with error handling
+            try:
+                import plotly.graph_objects as go
+                
+                # Safely extract detailed analysis
+                detailed_analysis = combined_pred.get('detailed_analysis', [])
+                if not detailed_analysis:
+                    st.info("📊 Individual model breakdown not available")
+                    return
+                
+                model_names = [d.get('model', 'Unknown') for d in detailed_analysis]
+                confidences = [d.get('confidence', 0) for d in detailed_analysis]
+                directions = [d.get('direction', 'HOLD') for d in detailed_analysis]
+                
+                colors = [
+                    '#00ff88' if d == 'UP' else '#ff0044' if d == 'DOWN' else '#ffaa00'
+                    for d in directions
+                ]
+                
+                fig = go.Figure(data=[
+                    go.Bar(
+                        x=model_names,
+                        y=confidences,
+                        marker_color=colors,
+                        text=[f"{c:.1f}%" for c in confidences],
+                        textposition='auto',
+                        hovertext=directions,
+                        name="Model Confidence (%)"
+                    )
+                ])
+                
+                fig.update_layout(
+                    title="7 AI Models Confidence/Agreement",
+                    xaxis_title="Model",
+                    yaxis_title="Confidence (%)",
+                    template="plotly_dark",
+                    height=350,
+                    plot_bgcolor='black',
+                    paper_bgcolor='black'
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+                
+            except Exception as chart_error:
+                st.warning(f"⚠️ Could not render model breakdown chart: {str(chart_error)}")
+                
+        except Exception as main_error:
+            st.error(f"❌ Error rendering combined prediction card: {str(main_error)}")
+            st.info("🔧 Please refresh the page and try again.")
     
     def render_prediction_cards(self, predictions, current_price, show_combined=True):
         """Render prediction cards with neon glow effects"""
@@ -1737,7 +1781,7 @@ class StockTrendAI:
                     st.warning("⚠️ No stock symbol selected for news analysis.")
                     st.info("💡 Please select a stock from the sidebar.")
                 else:
-                    app.news_sentiment.render_news_tab(selected_symbol)
+                    app.news_sentiment.render_news_sentiment_analysis(selected_symbol)
             except Exception as e:
                 st.error(f"❌ Error in news tab: {str(e)}")
                 st.info("Please check your internet connection and try again.")
@@ -3048,7 +3092,7 @@ if __name__ == "__main__":
                     st.warning("⚠️ No stock symbol selected for news analysis.")
                     st.info("💡 Please select a stock from the sidebar.")
                 else:
-                    app.news_sentiment.render_news_tab(selected_symbol)
+                    app.news_sentiment.render_news_sentiment_analysis(selected_symbol)
             except Exception as e:
                 st.error(f"❌ Error in news tab: {str(e)}")
                 st.info("Please check your internet connection and try again.")

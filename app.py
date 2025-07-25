@@ -1225,7 +1225,7 @@ class StockTrendAI:
             st.info("🔧 Please refresh the page and try again.")
     
     def render_prediction_cards(self, predictions, current_price, show_combined=True):
-        """Render prediction cards with neon glow effects"""
+        """Render prediction cards with neon glow effects including today's predictions"""
         if not predictions:
             st.warning("⚠️ No predictions available. Please select at least one model.")
             return
@@ -1259,6 +1259,7 @@ class StockTrendAI:
         }
         </style>
         """, unsafe_allow_html=True)
+        
         # Display individual model predictions in horizontal pairs (2 per row)
         pred_items = list(predictions.items())
         for i in range(0, len(pred_items), 2):
@@ -1266,15 +1267,24 @@ class StockTrendAI:
             for j in range(2):
                 if i + j < len(pred_items):
                     model_name, pred_data = pred_items[i + j]
-                    direction = pred_data['direction']
-                    confidence = pred_data['confidence']
+                    
+                    # Extract prediction data with validation
+                    direction = pred_data.get('direction', 'HOLD')
+                    confidence = pred_data.get('confidence', 50.0)
                     predicted_price = pred_data.get('predicted_price', current_price)
+                    
+                    # Generate today's prediction using the helper function
+                    today_predicted_price = self._generate_today_prediction(
+                        current_price, predicted_price, direction, confidence, model_name
+                    )
+                    
                     if direction == 'UP':
                         color_class = "prediction-card-up"
                         arrow = "⬆️"
                     else:
                         color_class = "prediction-card-down"
                         arrow = "⬇️"
+                        
                     model_icons = {
                         'XGBoost': '🚀',
                         'LSTM': '🧠',
@@ -1285,17 +1295,25 @@ class StockTrendAI:
                         'Stacking': '🏆'
                     }
                     icon = model_icons.get(model_name, '🤖')
-                    price_change = predicted_price - current_price
-                    change_percent = (price_change / current_price) * 100
+                    
+                    # Calculate price changes
+                    today_price_change = today_predicted_price - current_price
+                    today_change_percent = (today_price_change / current_price) * 100
+                    
+                    tomorrow_price_change = predicted_price - current_price
+                    tomorrow_change_percent = (tomorrow_price_change / current_price) * 100
+                    
                     confidence_indicator = self.get_confidence_indicator(confidence)
                     confidence_color = self.get_confidence_color(confidence)
-                    # Get current date and prediction date
+                    
+                    # Get dates
                     current_date = datetime.now().strftime("%d %b %Y")
-                    prediction_date = (datetime.now() + timedelta(days=1)).strftime("%d %b %Y")
+                    today_date = datetime.now().strftime("%d %b %Y")
+                    tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%d %b %Y")
                     
                     with cols[j]:
                         st.markdown(f"""
-                        <div class="prediction-card {color_class}" style="min-width: 320px; max-width: 340px; margin-bottom: 16px;">
+                        <div class="prediction-card {color_class}" style="min-width: 350px; max-width: 380px; margin-bottom: 16px;">
                             <div class="model-name">{icon} {model_name}</div>
                             <div class="prediction-direction">{arrow} {direction}</div>
                             <div class="confidence" style="color: {confidence_color}">
@@ -1304,11 +1322,24 @@ class StockTrendAI:
                                     <span class="confidence-fill" style="width: {confidence}%; background-color: {confidence_color}"></span>
                                 </span>
                             </div>
-                            <div class="price-prediction">
-                                <div class="current-price">Current: ₹{current_price:.2f} <span style="color: #aaa; font-size: 0.8rem;">({current_date})</span></div>
-                                <div class="predicted-price">Predicted: ₹{predicted_price:.2f} <span style="color: #aaa; font-size: 0.8rem;">({prediction_date})</span></div>
-                                <div class="price-change">
-                                    Change: {price_change:+.2f} ({change_percent:+.2f}%)
+                            <div class="price-predictions">
+                                <div class="current-price" style="margin-bottom: 8px;">
+                                    <strong>Current:</strong> ₹{current_price:.2f} 
+                                    <span style="color: #aaa; font-size: 0.8rem;">({current_date})</span>
+                                </div>
+                                <div class="today-prediction" style="margin-bottom: 8px; padding: 6px; background: rgba(255, 165, 0, 0.1); border-left: 3px solid #ffa500; border-radius: 3px;">
+                                    <div style="color: #ffa500; font-weight: bold;">📅 Today's Prediction:</div>
+                                    <div><strong>₹{today_predicted_price:.2f}</strong> <span style="color: #aaa; font-size: 0.8rem;">({today_date})</span></div>
+                                    <div style="font-size: 0.9rem; color: {'#00ff88' if today_price_change >= 0 else '#ff0044'};">
+                                        Change: {today_price_change:+.2f} ({today_change_percent:+.2f}%)
+                                    </div>
+                                </div>
+                                <div class="tomorrow-prediction" style="padding: 6px; background: rgba(0, 255, 136, 0.1); border-left: 3px solid #00ff88; border-radius: 3px;">
+                                    <div style="color: #00ff88; font-weight: bold;">🔮 Tomorrow's Prediction:</div>
+                                    <div><strong>₹{predicted_price:.2f}</strong> <span style="color: #aaa; font-size: 0.8rem;">({tomorrow_date})</span></div>
+                                    <div style="font-size: 0.9rem; color: {'#00ff88' if tomorrow_price_change >= 0 else '#ff0044'};">
+                                        Change: {tomorrow_price_change:+.2f} ({tomorrow_change_percent:+.2f}%)
+                                    </div>
                                 </div>
                             </div>
                         </div>

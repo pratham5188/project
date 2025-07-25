@@ -20,24 +20,59 @@ class ProphetPredictor:
         self.prophet_available = PROPHET_AVAILABLE
         
     def prepare_prophet_data(self, data):
-        """Prepare data in Prophet format (ds, y)"""
-        prophet_data = pd.DataFrame()
-        prophet_data['ds'] = pd.to_datetime(data.index).tz_localize(None)  # Remove timezone
-        prophet_data['y'] = data['Close'].values
-        
-        # Add additional regressors
-        if 'Volume' in data.columns:
-            prophet_data['volume'] = data['Volume'].values
-        if 'RSI' in data.columns:
-            prophet_data['rsi'] = data['RSI'].values
-        if 'MACD' in data.columns:
-            prophet_data['macd'] = data['MACD'].values
+        """Prepare data in Prophet format (ds, y) with robust timezone handling"""
+        try:
+            prophet_data = pd.DataFrame()
             
-        # Remove inf, -inf, NaN, and very large values
-        prophet_data = prophet_data.replace([np.inf, -np.inf], np.nan)
-        prophet_data = prophet_data.dropna()
-        prophet_data = prophet_data[(np.abs(prophet_data['y']) < 1e10)]
-        return prophet_data
+            # Robust timezone handling for datetime index
+            datetime_index = pd.to_datetime(data.index)
+            
+            # Remove timezone information if present
+            if datetime_index.tz is not None:
+                # If timezone-aware, convert to naive datetime
+                datetime_index = datetime_index.tz_convert('UTC').tz_localize(None)
+            else:
+                # If already timezone-naive, keep as is
+                datetime_index = datetime_index
+            
+            prophet_data['ds'] = datetime_index
+            prophet_data['y'] = data['Close'].values
+            
+            # Add additional regressors
+            if 'Volume' in data.columns:
+                prophet_data['volume'] = data['Volume'].values
+            if 'RSI' in data.columns:
+                prophet_data['rsi'] = data['RSI'].values
+            if 'MACD' in data.columns:
+                prophet_data['macd'] = data['MACD'].values
+                
+            # Remove inf, -inf, NaN, and very large values
+            prophet_data = prophet_data.replace([np.inf, -np.inf], np.nan)
+            prophet_data = prophet_data.dropna()
+            prophet_data = prophet_data[(np.abs(prophet_data['y']) < 1e10)]
+            
+            # Ensure ds column is timezone-naive datetime
+            prophet_data['ds'] = pd.to_datetime(prophet_data['ds']).dt.tz_localize(None)
+            
+            # Final validation - ensure ds column has no timezone
+            if hasattr(prophet_data['ds'], 'dt') and prophet_data['ds'].dt.tz is not None:
+                prophet_data['ds'] = prophet_data['ds'].dt.tz_localize(None)
+            
+            return prophet_data
+            
+        except Exception as e:
+            print(f"Error in prepare_prophet_data: {str(e)}")
+            # Fallback: create minimal prophet data without timezone
+            prophet_data = pd.DataFrame()
+            try:
+                # Simple datetime conversion without timezone
+                prophet_data['ds'] = pd.to_datetime(data.index.astype(str)).dt.tz_localize(None)
+                prophet_data['y'] = data['Close'].values
+                prophet_data = prophet_data.dropna()
+                return prophet_data
+            except Exception as fallback_error:
+                print(f"Fallback also failed: {str(fallback_error)}")
+                return pd.DataFrame({'ds': [], 'y': []})
     
     def train(self, data):
         """Train Prophet model"""
@@ -115,7 +150,7 @@ class ProphetPredictor:
         }
     
     def predict(self, data):
-        """Make Prophet prediction for next day"""
+        """Make Prophet prediction for next day with robust timezone handling"""
         try:
             if not self.prophet_available:
                 return self.trend_based_prediction(data)
@@ -127,11 +162,34 @@ class ProphetPredictor:
                 if result is None:
                     return self.trend_based_prediction(data)
             
-            # Create future dataframe for 1 day
-            last_date = data.index[-1]
-            next_date = last_date + timedelta(days=1)
-            
-            future = pd.DataFrame({'ds': [next_date]})
+            # Create future dataframe for 1 day with proper timezone handling
+            try:
+                last_date = data.index[-1]
+                
+                # Ensure last_date is timezone-naive for Prophet
+                if hasattr(last_date, 'tz') and last_date.tz is not None:
+                    last_date = last_date.tz_convert('UTC').tz_localize(None)
+                elif isinstance(last_date, pd.Timestamp) and last_date.tz is not None:
+                    last_date = last_date.tz_convert('UTC').tz_localize(None)
+                
+                # Create next date
+                next_date = last_date + timedelta(days=1)
+                
+                # Ensure next_date is timezone-naive
+                if hasattr(next_date, 'tz') and next_date.tz is not None:
+                    next_date = next_date.tz_localize(None)
+                
+                future = pd.DataFrame({'ds': [next_date]})
+                
+                # Ensure ds column is timezone-naive
+                future['ds'] = pd.to_datetime(future['ds']).dt.tz_localize(None)
+                
+            except Exception as date_error:
+                print(f"Date handling error: {str(date_error)}")
+                # Fallback: use current timestamp
+                from datetime import datetime
+                next_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+                future = pd.DataFrame({'ds': [next_date]})
             
             # Add regressor values for prediction (use last known values)
             if 'Volume' in data.columns and hasattr(self.model, 'extra_regressors'):

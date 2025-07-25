@@ -114,10 +114,20 @@ class DataFetcher:
             
             if date_column:
                 data[date_column] = pd.to_datetime(data[date_column])
+                # Remove timezone information if present to avoid Prophet errors
+                if hasattr(data[date_column], 'dt') and data[date_column].dt.tz is not None:
+                    data[date_column] = data[date_column].dt.tz_convert('UTC').dt.tz_localize(None)
                 data.set_index(date_column, inplace=True)
             else:
                 # If no date column found, use the existing index
                 data.index = pd.to_datetime(data.index)
+                # Remove timezone information from index if present
+                if hasattr(data.index, 'tz') and data.index.tz is not None:
+                    data.index = data.index.tz_convert('UTC').tz_localize(None)
+            
+            # Ensure the final index is timezone-naive
+            if hasattr(data.index, 'tz') and data.index.tz is not None:
+                data.index = data.index.tz_convert('UTC').tz_localize(None)
             
             # Remove any duplicate indices
             data = data[~data.index.duplicated(keep='first')]
@@ -171,10 +181,16 @@ class DataFetcher:
                         
                         if date_column:
                             data[date_column] = pd.to_datetime(data[date_column])
+                            # Remove timezone information if present to avoid Prophet errors
+                            if hasattr(data[date_column], 'dt') and data[date_column].dt.tz is not None:
+                                data[date_column] = data[date_column].dt.tz_convert('UTC').dt.tz_localize(None)
                             data.set_index(date_column, inplace=True)
                         else:
                             # If no date column found, use the existing index
                             data.index = pd.to_datetime(data.index)
+                            # Remove timezone information from index if present
+                            if hasattr(data.index, 'tz') and data.index.tz is not None:
+                                data.index = data.index.tz_convert('UTC').tz_localize(None)
                         data = data[~data.index.duplicated(keep='first')]
                         data = data.sort_index()
                         data = data.ffill()

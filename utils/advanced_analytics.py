@@ -688,7 +688,6 @@ class AdvancedAnalytics:
                 "📈 Comprehensive Analysis",
                 "📊 Volume Analysis", 
                 "🔍 Risk Metrics",
-                "📈 Volatility Analysis",
                 "🎯 Monte Carlo Simulation",
                 "📐 Fibonacci Retracement",
                 "🌊 Elliott Wave Analysis",
@@ -743,44 +742,7 @@ class AdvancedAnalytics:
                     with col4:
                         st.metric("VaR (95%)", f"{risk_metrics['var_95']:.2%}")
             
-            elif analytics_type == "📈 Volatility Analysis":
-                st.markdown("### 📈 Detailed Volatility Analysis")
-                
-                # Calculate comprehensive volatility metrics
-                volatility_metrics = self.calculate_volatility_analysis(stock_data)
-                
-                if volatility_metrics:
-                    # Display key volatility metrics
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Daily Volatility", f"{volatility_metrics['daily_volatility']:.4f}")
-                        st.metric("Annualized Volatility", f"{volatility_metrics['annualized_volatility']:.2%}")
-                    with col2:
-                        st.metric("30-Day Rolling Vol", f"{volatility_metrics['rolling_volatility_30d'].iloc[-1]:.4f}")
-                        st.metric("60-Day Rolling Vol", f"{volatility_metrics['rolling_volatility_60d'].iloc[-1]:.4f}")
-                    with col3:
-                        st.metric("Volatility Percentile", f"{volatility_metrics['volatility_percentile']:.1f}%")
-                        
-                        # Volatility interpretation
-                        vol_level = volatility_metrics['annualized_volatility']
-                        if vol_level > 0.4:
-                            vol_desc = "🔴 Very High"
-                        elif vol_level > 0.25:
-                            vol_desc = "🟠 High"
-                        elif vol_level > 0.15:
-                            vol_desc = "🟡 Moderate"
-                        else:
-                            vol_desc = "🟢 Low"
-                        st.info(f"**Volatility Level**: {vol_desc}")
-                    
-                    # Volatility trend chart
-                    st.markdown("#### 📊 Volatility Trends")
-                    fig = self.create_volatility_chart(stock_data)
-                    if fig:
-                        st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.error("❌ Unable to calculate volatility metrics")
-                
+
             elif analytics_type == "🎯 Monte Carlo Simulation":
                 st.markdown("### 🎯 Monte Carlo Price Simulation")
                 

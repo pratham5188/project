@@ -1656,7 +1656,7 @@ class StockTrendAI:
         # Render header
         self.render_header()
         
-        # Main navigation tabs
+        # Main tabs
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "🎯 Predictions", 
             "📊 Portfolio", 
@@ -3336,6 +3336,9 @@ if __name__ == "__main__":
             flex-direction: row;
             gap: 10px;
         }
+        .stRadio input[type="radio"] {
+            display: none !important;
+        }
         .stRadio > div > label {
             background-color: #1f1f1f;
             border: 1px solid #00ff88;
@@ -3345,6 +3348,7 @@ if __name__ == "__main__":
             transition: all 0.3s ease;
             color: #ffffff;
             font-weight: 500;
+            cursor: pointer;
         }
         .stRadio > div > label:hover {
             background-color: #00ff88;
@@ -3360,7 +3364,6 @@ if __name__ == "__main__":
         </style>
         """, unsafe_allow_html=True)
         
-        st.markdown("### 🧭 Navigation")
         selected_tab_name = st.radio(
             "Select section:",
             tab_names,

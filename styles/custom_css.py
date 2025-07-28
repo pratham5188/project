@@ -471,7 +471,7 @@ def get_custom_css():
         box-shadow: 0 6px 30px rgba(0,255,136,0.5);
     }
     
-    /* Tab Styling */
+    /* Tab Navigation */
     .tab-navigation {
         display: flex;
         background: rgba(0,0,0,0.3);
@@ -1114,35 +1114,9 @@ def get_custom_css():
         background-color: transparent !important;
     }
     
-    /* Radio button inputs - Hide the radio button symbols */
+    /* Radio button inputs */
     .stRadio input[type="radio"] {
-        display: none !important;
-    }
-    
-    /* Style radio button labels to look like buttons */
-    .stRadio label {
-        display: inline-block !important;
-        padding: 8px 16px !important;
-        margin: 4px !important;
-        border: 1px solid rgba(0,255,136,0.5) !important;
-        border-radius: 8px !important;
-        cursor: pointer !important;
-        transition: all 0.3s ease !important;
-        background-color: rgba(0,0,0,0.3) !important;
-    }
-    
-    /* Active/checked radio button label styling */
-    .stRadio label[data-checked="true"] {
-        background-color: rgba(0,255,136,0.8) !important;
-        color: #000000 !important;
-        border-color: #00ff88 !important;
-        box-shadow: 0 0 10px rgba(0,255,136,0.5) !important;
-    }
-    
-    /* Hover effect for radio button labels */
-    .stRadio label:hover {
-        background-color: rgba(0,255,136,0.2) !important;
-        border-color: #00ff88 !important;
+        accent-color: #00ff88 !important;
     }
     
     /* ========== BUTTON STYLING ========== */

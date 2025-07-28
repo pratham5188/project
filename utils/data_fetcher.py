@@ -374,12 +374,23 @@ class DataFetcher:
         try:
             # Validate the symbol first
             if self.validate_symbol(symbol):
-                # This would update the configuration file
-                # For now, we'll just return success
-                return {
-                    'success': True,
-                    'message': f'Stock {symbol} - {name} added successfully'
-                }
+                # Import the stock discovery system
+                from utils.stock_discovery import stock_discovery
+                
+                # Add to the stock discovery system
+                new_stocks = {symbol: name}
+                success = stock_discovery.update_config_file(new_stocks)
+                
+                if success:
+                    return {
+                        'success': True,
+                        'message': f'Stock {symbol} - {name} added successfully and configuration updated'
+                    }
+                else:
+                    return {
+                        'success': True,
+                        'message': f'Stock {symbol} - {name} validated but configuration update failed'
+                    }
             else:
                 return {
                     'success': False,
@@ -389,6 +400,24 @@ class DataFetcher:
             return {
                 'success': False,
                 'message': f'Error adding stock: {str(e)}'
+            }
+    
+    def auto_discover_new_stocks(self):
+        """Automatically discover and add new stocks"""
+        try:
+            from utils.stock_discovery import auto_update_stocks
+            
+            success, message, count = auto_update_stocks()
+            return {
+                'success': success,
+                'message': message,
+                'new_stocks_count': count
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'message': f'Auto-discovery failed: {str(e)}',
+                'new_stocks_count': 0
             }
     
     def search_stocks(self, query):

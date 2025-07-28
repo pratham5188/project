@@ -18,6 +18,10 @@ holidays>=0.25
 importlib_resources>=6.5.2
 scipy>=1.16.0
 
+# Auto-discovery system dependencies
+schedule>=1.2.0
+requests>=2.31.0
+
 # Deep Learning - Currently incompatible with Python 3.13 ❌
 # tensorflow>=2.18.0  # Not available for Python 3.13 yet
 # keras>=3.10.0       # Not available for Python 3.13 yet

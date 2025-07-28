@@ -1,0 +1,11 @@
+{
+  "notifications": [
+    {
+      "message": "\u26a0\ufe0f Error during stock discovery: tuple indices must be integers or slices, not str",
+      "type": "error",
+      "timestamp": "2025-07-28T04:52:09.522854",
+      "read": true
+    }
+  ],
+  "last_update": "2025-07-28T04:53:17.612029"
+}

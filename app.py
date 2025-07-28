@@ -179,6 +179,16 @@ if 'stock_data' not in st.session_state:
 if 'predictions' not in st.session_state:
     st.session_state.predictions = None
 
+# Initialize background service for automatic stock discovery
+if 'background_service_started' not in st.session_state:
+    try:
+        from utils.background_service import start_background_service
+        st.session_state.background_service = start_background_service()
+        st.session_state.background_service_started = True
+    except Exception as e:
+        st.session_state.background_service_started = False
+        pass  # Silently continue if background service fails to start
+
 
 class StockTrendAI:
     def __init__(self):
@@ -206,6 +216,36 @@ class StockTrendAI:
             <p class="subtitle">AI-Powered Indian Stock Market Predictor with 7 Advanced ML Models</p>
         </div>
         """, unsafe_allow_html=True)
+        
+        # Show background service notifications
+        try:
+            from utils.background_service import get_notifications, mark_notifications_read
+            notifications = get_notifications()
+            
+            if notifications:
+                for notification in notifications[-2:]:  # Show last 2 notifications
+                    timestamp = notification['timestamp']
+                    message = notification['message']
+                    notification_type = notification.get('type', 'info')
+                    
+                    # Parse timestamp for display
+                    from datetime import datetime
+                    dt = datetime.fromisoformat(timestamp)
+                    time_str = dt.strftime("%H:%M %d/%m")
+                    
+                    if notification_type == 'success':
+                        st.success(f"{message} (at {time_str})")
+                    elif notification_type == 'error':
+                        st.error(f"{message} (at {time_str})")
+                    else:
+                        st.info(f"{message} (at {time_str})")
+                
+                # Add a small button to clear notifications
+                if st.button("✓ Mark all as read", key="clear_notifications"):
+                    mark_notifications_read()
+                    st.rerun()
+        except Exception:
+            pass  # Silently ignore notification errors
     
     def render_sidebar(self):
         """Render the sidebar with collapsible control panel"""
@@ -307,11 +347,28 @@ class StockTrendAI:
         )
         
         if selection_type == "📈 Individual Stocks":
+            # Get updated stock list (includes auto-discovered stocks)
+            try:
+                from utils.stock_discovery import get_latest_stock_list
+                updated_stocks = get_latest_stock_list()
+                
+                # Fall back to config stocks if discovery fails
+                if not updated_stocks:
+                    updated_stocks = INDIAN_STOCKS
+                    
+                # Merge with existing stocks to ensure we have all
+                all_stocks = dict(INDIAN_STOCKS)
+                all_stocks.update(updated_stocks)
+            except Exception as e:
+                # Fallback to original stocks if discovery system fails
+                all_stocks = INDIAN_STOCKS
+                st.sidebar.warning(f"⚠️ Using cached stock list: {str(e)}")
+            
             # Create dropdown with company names
             stock_options = []
             stock_mapping = {}
             
-            for symbol, name in INDIAN_STOCKS.items():
+            for symbol, name in sorted(all_stocks.items()):
                 display_text = f"{name} ({symbol})"
                 stock_options.append(display_text)
                 stock_mapping[display_text] = symbol
@@ -325,11 +382,12 @@ class StockTrendAI:
             
             current_index = stock_options.index(current_display) if current_display else 0
             
-            # Stock selection dropdown
+            # Stock selection dropdown with updated list
             selected_display = st.sidebar.selectbox(
-                "Select Indian Stock",
+                f"Select Indian Stock ({len(all_stocks)} companies)",
                 options=stock_options,
-                index=current_index
+                index=current_index,
+                help="📈 List automatically updates with new companies"
             )
             selected_symbol = stock_mapping[selected_display]
         else:
@@ -352,13 +410,51 @@ class StockTrendAI:
         with st.sidebar.expander("Add Custom Stock"):
             new_symbol = st.text_input("Stock Symbol (e.g., WIPRO)")
             new_name = st.text_input("Company Name")
-            if st.button("Add Stock"):
-                if new_symbol and new_name:
-                    result = self.data_fetcher.add_new_stock(new_symbol, new_name)
-                    if result['success']:
-                        st.success(result['message'])
-                    else:
-                        st.error(result['message'])
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Add Stock"):
+                    if new_symbol and new_name:
+                        result = self.data_fetcher.add_new_stock(new_symbol, new_name)
+                        if result['success']:
+                            st.success(result['message'])
+                            # Clear the cache to refresh dropdown
+                            st.cache_data.clear()
+                            st.rerun()
+                        else:
+                            st.error(result['message'])
+            
+            with col2:
+                if st.button("🔍 Auto-Discover"):
+                    with st.spinner("Discovering new stocks..."):
+                        result = self.data_fetcher.auto_discover_new_stocks()
+                        if result['success']:
+                            if result['new_stocks_count'] > 0:
+                                st.success(f"✅ {result['message']}")
+                                # Clear the cache to refresh dropdown
+                                st.cache_data.clear()
+                                st.rerun()
+                            else:
+                                st.info("ℹ️ No new stocks found")
+                        else:
+                            st.error(f"❌ {result['message']}")
+        
+        # Auto-discovery status
+        with st.sidebar.expander("📊 Stock Discovery Status"):
+            try:
+                from utils.stock_discovery import get_new_companies
+                new_companies = get_new_companies()
+                
+                if new_companies:
+                    st.info(f"🆕 Found {len(new_companies)} new companies since last update")
+                    for company in new_companies[:5]:  # Show first 5
+                        st.text(f"• {company['symbol']} - {company['company_name']}")
+                    if len(new_companies) > 5:
+                        st.text(f"... and {len(new_companies) - 5} more")
+                else:
+                    st.success("✅ All companies up to date")
+            except Exception as e:
+                st.text(f"Status check failed: {str(e)}")
         
         # Time period selection with valid yfinance periods
         period_options = {
@@ -1979,10 +2075,38 @@ class StockTrendAI:
                     util_col1, util_col2 = st.columns(2)
                     
                     with util_col1:
-                        # st.markdown("### ⚙️ App Settings")
-                        # st.info("🎨 Color theme: Dark Neon (with white text)")
-                        # st.info("🤖 AI Models: 5 Advanced Models Available")
                         st.info("📊 Data Source: Yahoo Finance (Indian Markets)")
+                        
+                        # Auto-Discovery Management
+                        st.markdown("### 🔍 Auto-Discovery System")
+                        try:
+                            from utils.auto_updater import get_updater_status, force_stock_update
+                            status = get_updater_status()
+                            
+                            if status['is_running']:
+                                st.success("✅ Auto-discovery is running")
+                                if status['last_check']:
+                                    from datetime import datetime
+                                    last_check = datetime.fromisoformat(status['last_check'])
+                                    st.info(f"Last check: {last_check.strftime('%d/%m/%Y %H:%M')}")
+                                
+                                if st.button("🔄 Force Update Now"):
+                                    with st.spinner("Checking for new stocks..."):
+                                        result = force_stock_update()
+                                        if result['success']:
+                                            if result['new_stocks_count'] > 0:
+                                                st.success(f"✅ Found {result['new_stocks_count']} new stocks!")
+                                                st.cache_data.clear()
+                                                st.rerun()
+                                            else:
+                                                st.info("ℹ️ No new stocks found")
+                                        else:
+                                            st.error(f"❌ {result['message']}")
+                            else:
+                                st.warning("⚠️ Auto-discovery is not running")
+                        except Exception as e:
+                            st.error(f"Auto-discovery system error: {str(e)}")
+                        
                         st.markdown("### 🔋 Model Status")
                         model_status = {
                             "XGBoost": "✅ Ready",
@@ -3073,6 +3197,40 @@ class StockTrendAI:
                 if st.button("🧹 Clear Cache"):
                     st.cache_data.clear()
                     st.success("Cache cleared successfully!")
+                
+                st.markdown("### 🔄 Stock Auto-Discovery")
+                
+                # Show auto-discovery status
+                try:
+                    from utils.background_service import get_service_status, manual_stock_check, get_notifications
+                    status = get_service_status()
+                    
+                    if status.get("is_running", False):
+                        st.success("✅ Auto-discovery: Active")
+                        if status.get('unread_notifications', 0) > 0:
+                            st.info(f"📬 {status['unread_notifications']} new updates")
+                    else:
+                        st.warning("⚠️ Auto-discovery: Inactive")
+                    
+                    # Manual check button
+                    if st.button("🔍 Check for New Stocks"):
+                        with st.spinner("Checking for new stocks..."):
+                            try:
+                                manual_stock_check()
+                                st.success("✅ Check initiated! See notifications above.")
+                            except Exception as e:
+                                st.error(f"Error: {str(e)}")
+                    
+                    # Show current stock count
+                    try:
+                        current_stocks = get_current_stock_list()
+                        st.metric("Total Stocks", len(current_stocks))
+                    except:
+                        st.metric("Total Stocks", len(INDIAN_STOCKS))
+                        
+                except ImportError:
+                    st.info("Auto-discovery service unavailable")
+                
                 st.markdown("### 📝 App Information")
                 st.markdown("""
                 **Version:** 2.0 - Advanced AI Edition

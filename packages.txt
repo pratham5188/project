@@ -1,0 +1,6 @@
+# System packages required for StockTrendAI deployment
+python3-dev
+python3-pip
+build-essential
+curl
+wget

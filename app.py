@@ -178,6 +178,8 @@ if 'stock_data' not in st.session_state:
     st.session_state.stock_data = None
 if 'predictions' not in st.session_state:
     st.session_state.predictions = None
+if 'active_tab' not in st.session_state:
+    st.session_state.active_tab = 0  # Default to first tab (AI Predictions)
 
 # Initialize background service for automatic stock discovery
 if 'background_service_started' not in st.session_state:
@@ -3318,16 +3320,64 @@ if __name__ == "__main__":
             st.error("❌ Unable to load stock data. Please try a different stock or time period.")
             st.stop()
         
-        # Create tabs for different sections
-        prediction_tab, portfolio_tab, analytics_tab, news_tab, tools_tab = st.tabs([
+        # Create tabs for different sections with persistent state
+        tab_names = [
             "🤖 AI Predictions",
             "💼 Portfolio Tracker", 
             "📊 Advanced Analytics",
             "📰 News & Sentiment",
             "⚙️ Advanced Tools"
-        ])
+        ]
         
-        with prediction_tab:
+        # Create tab selection using radio buttons for persistence
+        st.markdown("""
+        <style>
+        .stRadio > div {
+            flex-direction: row;
+            gap: 10px;
+        }
+        .stRadio > div > label {
+            background-color: #1f1f1f;
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 8px 15px;
+            margin: 2px;
+            transition: all 0.3s ease;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        .stRadio > div > label:hover {
+            background-color: #00ff88;
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 255, 136, 0.3);
+        }
+        .stRadio > div > label[data-checked="true"] {
+            background-color: #00ff88;
+            color: #000000;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.5);
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("### 🧭 Navigation")
+        selected_tab_name = st.radio(
+            "Select section:",
+            tab_names,
+            index=st.session_state.active_tab,
+            horizontal=True,
+            key="main_tab_selector",
+            label_visibility="collapsed"
+        )
+        
+        # Update active tab index
+        st.session_state.active_tab = tab_names.index(selected_tab_name)
+        
+        # Add separator
+        st.markdown("---")
+        
+        # Render content based on selected tab
+        if selected_tab_name == "🤖 AI Predictions":
             try:
                 # Validate data quality
                 if stock_data is None or stock_data.empty:
@@ -3388,7 +3438,7 @@ if __name__ == "__main__":
                 st.info("Please refresh the page and try again.")
             st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
-        with portfolio_tab:
+        elif selected_tab_name == "💼 Portfolio Tracker":
             try:
                 st.info("🟢 You are in the Portfolio Tracker tab.")
                 app.portfolio_tracker.render_portfolio_tab()
@@ -3396,7 +3446,7 @@ if __name__ == "__main__":
                 st.error(f"❌ Error in portfolio tab: {str(e)}")
             st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
-        with analytics_tab:
+        elif selected_tab_name == "📊 Advanced Analytics":
             try:
                 st.info("🟢 You are in the Advanced Analytics tab.")
                 if stock_data is not None and not stock_data.empty:
@@ -3415,7 +3465,7 @@ if __name__ == "__main__":
                 st.expander("🔧 Debug Info").write(f"Error details: {type(e).__name__}: {str(e)}")
             st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
-        with news_tab:
+        elif selected_tab_name == "📰 News & Sentiment":
             try:
                 st.info("🟢 You are in the News & Sentiment tab.")
                 # Validate symbol before news analysis
@@ -3434,7 +3484,7 @@ if __name__ == "__main__":
                 st.markdown("- Try refreshing the page in a few moments")
             st.warning("⚠️ This is AI-based Predictions, so invest at your own risk.")
         
-        with tools_tab:
+        elif selected_tab_name == "⚙️ Advanced Tools":
             try:
                 st.info("🟢 You are in the Advanced Tools tab.")
                 app.render_advanced_tools_tab()

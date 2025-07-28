@@ -333,12 +333,16 @@ class AdvancedAnalytics:
         
         # Monthly patterns
         monthly_returns = data.groupby('Month')['Returns'].agg(['mean', 'std', 'count'])
-        monthly_returns.index = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        # Create proper month mapping based on available data
+        month_names = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
+                      7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
+        monthly_returns.index = [month_names[i] for i in monthly_returns.index]
         
         # Day of week patterns
         dow_returns = data.groupby('DayOfWeek')['Returns'].agg(['mean', 'std', 'count'])
-        dow_returns.index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        # Create proper day mapping based on available data
+        day_names = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'}
+        dow_returns.index = [day_names[i] for i in dow_returns.index]
         
         # Quarterly patterns
         quarterly_returns = data.groupby('Quarter')['Returns'].agg(['mean', 'std', 'count'])
@@ -365,6 +369,77 @@ class AdvancedAnalytics:
             return self._create_volume_chart(stock_data)
         elif analysis_type == 'correlation':
             return self._create_correlation_heatmap(stock_data)
+    
+    def create_volatility_chart(self, stock_data):
+        """Create volatility analysis chart"""
+        try:
+            import plotly.graph_objects as go
+            from plotly.subplots import make_subplots
+            
+            # Calculate returns and rolling volatilities
+            returns = stock_data['Close'].pct_change().dropna()
+            vol_20 = returns.rolling(20).std() * np.sqrt(252)  # 20-day annualized
+            vol_60 = returns.rolling(60).std() * np.sqrt(252)  # 60-day annualized
+            
+            # Create subplots
+            fig = make_subplots(
+                rows=2, cols=1,
+                subplot_titles=['Price vs Rolling Volatility', 'Volatility Levels Over Time'],
+                vertical_spacing=0.12
+            )
+            
+            # Price chart
+            fig.add_trace(
+                go.Scatter(
+                    x=stock_data.index,
+                    y=stock_data['Close'],
+                    name='Price',
+                    line=dict(color='#00ff88', width=2)
+                ),
+                row=1, col=1
+            )
+            
+            # Volatility charts
+            fig.add_trace(
+                go.Scatter(
+                    x=vol_20.index,
+                    y=vol_20 * 100,  # Convert to percentage
+                    name='20-Day Vol',
+                    line=dict(color='#ff6b6b', width=2)
+                ),
+                row=2, col=1
+            )
+            
+            fig.add_trace(
+                go.Scatter(
+                    x=vol_60.index,
+                    y=vol_60 * 100,  # Convert to percentage
+                    name='60-Day Vol',
+                    line=dict(color='#4ecdc4', width=2)
+                ),
+                row=2, col=1
+            )
+            
+            # Update layout
+            fig.update_layout(
+                title="📈 Volatility Analysis",
+                height=600,
+                showlegend=True,
+                template="plotly_dark",
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
+            )
+            
+            # Update axes
+            fig.update_xaxes(title_text="Date", row=2, col=1)
+            fig.update_yaxes(title_text="Price (₹)", row=1, col=1)
+            fig.update_yaxes(title_text="Volatility (%)", row=2, col=1)
+            
+            return fig
+            
+        except Exception as e:
+            st.error(f"Error creating volatility chart: {e}")
+            return None
         
     def _create_comprehensive_chart(self, stock_data):
         """Create comprehensive multi-panel chart"""
@@ -613,6 +688,7 @@ class AdvancedAnalytics:
                 "📈 Comprehensive Analysis",
                 "📊 Volume Analysis", 
                 "🔍 Risk Metrics",
+                "📈 Volatility Analysis",
                 "🎯 Monte Carlo Simulation",
                 "📐 Fibonacci Retracement",
                 "🌊 Elliott Wave Analysis",
@@ -666,6 +742,44 @@ class AdvancedAnalytics:
                         st.metric("Volatility", f"{risk_metrics['volatility']:.2%}")
                     with col4:
                         st.metric("VaR (95%)", f"{risk_metrics['var_95']:.2%}")
+            
+            elif analytics_type == "📈 Volatility Analysis":
+                st.markdown("### 📈 Detailed Volatility Analysis")
+                
+                # Calculate comprehensive volatility metrics
+                volatility_metrics = self.calculate_volatility_analysis(stock_data)
+                
+                if volatility_metrics:
+                    # Display key volatility metrics
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Daily Volatility", f"{volatility_metrics['daily_volatility']:.4f}")
+                        st.metric("Annualized Volatility", f"{volatility_metrics['annualized_volatility']:.2%}")
+                    with col2:
+                        st.metric("30-Day Rolling Vol", f"{volatility_metrics['rolling_volatility_30d'].iloc[-1]:.4f}")
+                        st.metric("60-Day Rolling Vol", f"{volatility_metrics['rolling_volatility_60d'].iloc[-1]:.4f}")
+                    with col3:
+                        st.metric("Volatility Percentile", f"{volatility_metrics['volatility_percentile']:.1f}%")
+                        
+                        # Volatility interpretation
+                        vol_level = volatility_metrics['annualized_volatility']
+                        if vol_level > 0.4:
+                            vol_desc = "🔴 Very High"
+                        elif vol_level > 0.25:
+                            vol_desc = "🟠 High"
+                        elif vol_level > 0.15:
+                            vol_desc = "🟡 Moderate"
+                        else:
+                            vol_desc = "🟢 Low"
+                        st.info(f"**Volatility Level**: {vol_desc}")
+                    
+                    # Volatility trend chart
+                    st.markdown("#### 📊 Volatility Trends")
+                    fig = self.create_volatility_chart(stock_data)
+                    if fig:
+                        st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.error("❌ Unable to calculate volatility metrics")
                 
             elif analytics_type == "🎯 Monte Carlo Simulation":
                 st.markdown("### 🎯 Monte Carlo Price Simulation")

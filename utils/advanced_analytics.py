@@ -306,6 +306,10 @@ class AdvancedAnalytics:
         
         mfi = 100 - (100 / (1 + positive_flow / negative_flow))
         
+        # Calculate volume volatility
+        volume_returns = volume.pct_change().dropna()
+        volume_volatility = volume_returns.std()
+        
         return {
             'volume_ma_20': volume_ma_20,
             'volume_ma_50': volume_ma_50,
@@ -314,7 +318,8 @@ class AdvancedAnalytics:
             'vpt': vpt,
             'mfi': mfi,
             'avg_volume': volume.mean(),
-            'volume_trend': 'increasing' if volume_ma_20.iloc[-1] > volume_ma_50.iloc[-1] else 'decreasing'
+            'volume_trend': 'increasing' if volume_ma_20.iloc[-1] > volume_ma_50.iloc[-1] else 'decreasing',
+            'volatility': volume_volatility
         }
     
     def seasonality_analysis(self, stock_data):
@@ -811,14 +816,29 @@ class AdvancedAnalytics:
                     col1, col2 = st.columns(2)
                     with col1:
                         st.markdown("#### 📊 Monthly Performance")
-                        for month, performance in seasonality['monthly_patterns']['mean'].items():
+                        monthly_means = seasonality['monthly_patterns']['mean']
+                        for month, performance in monthly_means.items():
                             color = "🟢" if performance > 0 else "🔴"
                             st.info(f"{color} {month}: {performance:+.2%}")
                     with col2:
                         st.markdown("#### 📊 Day of Week Performance")
-                        for day, performance in seasonality['daily_patterns']['mean'].items():
+                        daily_means = seasonality['daily_patterns']['mean']
+                        for day, performance in daily_means.items():
                             color = "🟢" if performance > 0 else "🔴"
                             st.info(f"{color} {day}: {performance:+.2%}")
+                    
+                    # Add summary statistics
+                    st.markdown("#### 🎯 Key Insights")
+                    col3, col4 = st.columns(2)
+                    with col3:
+                        st.metric("Best Month", seasonality.get('best_month', 'N/A'))
+                        st.metric("Worst Month", seasonality.get('worst_month', 'N/A'))
+                    with col4:
+                        st.metric("Best Day", seasonality.get('best_day', 'N/A'))
+                        st.metric("Worst Day", seasonality.get('worst_day', 'N/A'))
+                else:
+                    st.warning("⚠️ Insufficient data for seasonality analysis. Need at least 1 year of data (252 trading days).")
+                    st.info(f"📊 Current data: {len(stock_data)} days | Required: 252 days")
         
         except Exception as e:
             st.error(f"❌ Error in analytics: {str(e)}")
